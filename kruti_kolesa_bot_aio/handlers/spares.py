@@ -1,7 +1,8 @@
 from aiogram import Router, F
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from keyboards.all_kb import main_kb, b_models, works_edit_kb, works_groups, return_works_kb, m_or_e_kb,add_spares,spares_list_for_work,return_spares_group,return_spares
+from keyboards.all_kb import main_kb, b_models, works_edit_kb, works_groups, return_works_kb, m_or_e_kb,\
+    add_spares,spares_list_for_work,return_spares_group,return_spares,deleting_spares
 from aiogram.fsm.context import FSMContext
 import pandas as pd
 from utils.info import info
@@ -28,6 +29,8 @@ class Form(StatesGroup):
     wait = State()
     getting_spare = State()
     getting_spare_ = State()
+    remont_edit = State()
+    deleting_spares = State()
     next_menu = State()
 spares_router = Router()
 
@@ -37,9 +40,36 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     print(1)
     await state.set_state(Form.getting_spare_)
     await message.answer("Введи зч", reply_markup=spares_list_for_work())
+
+@spares_router.message(F.text=="🗑 Удалить запчасть",Form.remont_edit)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    data = await state.get_data()
+    if len(data['works']):
+        await message.reply("Что удалить?", reply_markup=deleting_spares(await state.get_data()))
+        await state.set_state(Form.deleting_spares)
+    else:
+        await message.answer('Запчастей и так нет.')
+        await state.set_state(Form.remont_edit)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+
+@spares_router.message(F.text,Form.deleting_spares)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    data = await state.get_data()
+    print(message.text.split('| ')[1],data['spares'])
+    if '| 'in message.text and  message.text.split('| ')[1] in  data['spares']:
+        data['spares'].remove(message.text.split('| ')[1])
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+        await state.set_state(Form.next_menu)
+    else:
+        await message.answer('Нет такой запчасти')
+        await state.set_state(Form.remont_edit)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+
 @spares_router.message(F.text.contains("Запчасти не использовались"))
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print(2)
+    data = await state.get_data()
+    data['spares_types'].append('Без ЗЧ')
     await state.set_state(Form.next_menu)
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
 @spares_router.message(F.text,Form.getting_spare_)
@@ -50,7 +80,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         data['spares_types'].append('б/у')
         print("он выбрал бу")
     else:
-        data['spares_types'].append('')
+        data['spares_types'].append('Новый')
         print("он выбрал НЕ бу")
     await message.reply("Выбери группу запчастей:", reply_markup=return_spares_group(df_spares, await state.get_data()))
     await state.set_state(Form.find_spare_)
@@ -114,7 +144,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     if 'б/у' in message.text:
         data['spares_types'].append('б/у')
     else:
-        data['spares_types'].append('')
+        data['spares_types'].append('Новый')
     await message.reply("Запчасти:", reply_markup=add_spares(v_spares))
     await state.set_state(Form.add_spare)
     await state.update_data(spares_variant=v_spares)

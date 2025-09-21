@@ -41,7 +41,7 @@ def works_edit_kb():
     kb_list = [
         [KeyboardButton(text="➕ Добавить работу"),KeyboardButton(text="➕ Добавить запчасть")],
         [KeyboardButton(text="✏️Изменить ремонт")],
-        [KeyboardButton(text="❌ Отмена")]
+        [KeyboardButton(text="Сохранить ремонт 💾")]
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
@@ -50,7 +50,39 @@ def works_edit_kb():
         input_field_placeholder="Воспользуйтесь меню:"
     )
     return keyboard
-
+def akb_menu():
+    kb_list = [
+        [KeyboardButton(text="Добавить работу"),KeyboardButton(text="Добавить запчасть")],
+        [KeyboardButton(text="Сохранить ремонт 💾")]
+    ]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
+def akb_works(df):
+    kb = [[KeyboardButton(text=i)] for i in df[df['type']=="АКБ"].works.unique()]
+    kb.append([KeyboardButton(text='❌ Отмена')])
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
+def akb_start_kb():
+    kb_list = [
+        [KeyboardButton(text="Начать работу")]
+    ]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
 def b_models(a):
     kb_list = [
         [InlineKeyboardButton(text="Шаркусь монстр 15", callback_data='Шаркусь монстр 15')],
@@ -70,7 +102,7 @@ def b_models(a):
 #dict_keys(['accumulator', 'electronics', 'braking_system', 'drive_train', 'frame_and_wheels', 'body_and_cosmetic', 'lighting', 'other'])
 def works_groups(data,df):
     kb = [[KeyboardButton(text=i)] for i in df[df['type']==data['m_or_e']]['group'].unique()]
-    kb.append([KeyboardButton(text='Назад')])
+    kb.append([KeyboardButton(text='❌ Отмена')])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
@@ -81,6 +113,7 @@ def works_groups(data,df):
 
 def add_spares(a):
     kb_list = [[KeyboardButton(text=i)] for i in a]
+    kb_list.append([KeyboardButton(text="❌ Отмена ")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,
@@ -94,6 +127,7 @@ def spares_list_for_work():
         [KeyboardButton(text="Добавить б/у запчасть")],
         [KeyboardButton(text="Запчасти не использовались")]
     ]
+    kb_list.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,
@@ -105,7 +139,7 @@ def spares_list_for_work():
 
 def return_works_kb(data,df):
     kb = [[KeyboardButton(text=i)] for i in df.loc[((df['group']==data['last_group'])&(df['type']==data['m_or_e']))]['works'].unique()]
-    kb.append([KeyboardButton(text='Назад')])
+    kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
             keyboard=kb,
             resize_keyboard=True,
@@ -117,6 +151,7 @@ def return_works_kb(data,df):
     return keyboard
 def return_spares_group(df,data):
     kb = [[KeyboardButton(text=i)] for i in df[df['type']==data['m_or_e']].group.unique()]
+    kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
@@ -126,6 +161,7 @@ def return_spares_group(df,data):
     return keyboard
 def return_spares(df,data):
     kb = [[KeyboardButton(text=i)] for i in df.loc[((df['group']==data['last_spare_group'])&(df['type']==data['m_or_e']))]['spares'].unique()]
+    kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
@@ -138,6 +174,7 @@ def edit_work():
     kb_list = [
         [KeyboardButton(text="🗑 Удалить работу")],
         [KeyboardButton(text="🗑 Удалить запчасть")],
+        [KeyboardButton(text="❌ Отмена")],
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
@@ -148,13 +185,31 @@ def edit_work():
     return keyboard
 def deleting_works(data):
     print(data)
-    kb = [[KeyboardButton(text=i)] for i in data['works']]
+    kb = []
+    for q in range(len(data['works'])):
+        kb.append([KeyboardButton(text=f"{str(q)}| {data['works'][q]}")])
+    kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,
         resize_keyboard=True,
         one_time_keyboard=True,
         input_field_placeholder="Воспользуйтесь меню:"
     )
+    print(data['works'])
+    return keyboard
+def deleting_spares(data):
+    print(data)
+    kb = []
+    for q in range(len(data['spares'])):
+        kb.append([KeyboardButton(text=f"{str(q)}| {data['spares'][q]}")])
+    kb.append([KeyboardButton(text="❌ Отмена")])
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    print(data['works'])
     return keyboard
 def to_delete_work(data,df):
     kb = [[KeyboardButton(text=i)] for i in data['works']]

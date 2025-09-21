@@ -3,6 +3,7 @@ from create_bot import bot, dp, scheduler
 from handlers.start import start,questionnaire_router
 from handlers.works import works_router
 from handlers.spares import spares_router
+from handlers.akb import akb_router
 from handlers.other  import other
 # from work_time.time_func import send_time_msg
 
@@ -12,6 +13,7 @@ async def main():
     dp.include_router(works_router)
     dp.include_router(start)
     dp.include_router(other)
+    dp.include_router(akb_router)
     dp.include_router(questionnaire_router)
     dp.include_router(spares_router)
 

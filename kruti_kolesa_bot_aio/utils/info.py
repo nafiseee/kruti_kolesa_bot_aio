@@ -3,7 +3,7 @@ client_work = ['', '', 'Номер телефона: ', 'Акт №', 'Моде�
 async def info(state):
 
     data = await state.get_data()
-    print(data['spares_types'])
+    print('ffff',data)
     s = f"<b>Мастер:</b> {data['employer']} | {data['start_time']}\n\n"
     for q,w in enumerate(client_work_keys):
         if w in data:
@@ -17,14 +17,19 @@ async def info(state):
             print('fdddddddddddddddddddd')
             s+='____________\n'
     else:
+        n = 1
         for i in data['works']:
             if i not in data['works_count']:
-                s+=f"{i}\n"
+                if n<10:
+                    s+=" "
+                s+=f"{n}| {i}\n"
+
             else:
                 if data['works_count'][i]==1:
                     s += f"{i}\n"
                 else:
                     s += f"{i} ({data['works_count'][i]}x)\n"
+            n+=1
     s+="\n<b>Запчасти:</b>\n"
     if data['spares']==[]:
         for i in range(3):
@@ -43,13 +48,26 @@ async def info(state):
     else:
         for i in range(len(data['spares'])):
             if data['spares_types'][i]:
-                s+=f"{data['spares'][i]} [б/у]\n"
+                if i+1<10:
+                    s+=" "
+                s+=f"{i+1}| {data['spares'][i]} [б/у]\n"
             else:
-                s += f"{data['spares'][i]}\n"
+                s += f"{i+1}| {data['spares'][i]}\n"
     s+=f"\n<b>Норма часы:</b> {round(sum(data['norm_time']),1)}👺"
+
+
     s+='<blockquote>'
     for i in data.keys():
-        s+=str(i)
-        s+="\n"
+        if i not in ['works','spares','spares_variant']:
+
+            s+=str(i)+"   "+str(data[i])
+            s+="\n"
+    s+="*"*30
+    s+="\nworks:\n"
+    for i in data['works']:
+        s+=f"{i}\n"
+    s+="spares:\n"
+    for i in data['spares']:
+        s+=f"{i}\n"
     s+='</blockquote>'
     return s

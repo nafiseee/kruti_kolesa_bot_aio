@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 import pandas as pd
 from utils.info import info
 from utils.dataframes import df
+from .start import init_work
 class Form(StatesGroup):
     client_start = State()
     full_name = State()
@@ -37,23 +38,34 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.find_work)
 @works_router.message(F.text=="🗑 Удалить работу",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    await message.reply("Что удалить?", reply_markup=deleting_works(await state.get_data()))
-    await state.set_state(Form.deleting_work)
+    data = await state.get_data()
+    if message.text == '❌ Отмена':
+        await init_work(state, message)
+        return
+    if len(data['works']):
+        await message.reply("Что удалить?", reply_markup=deleting_works(await state.get_data()))
+        await state.set_state(Form.deleting_work)
+    else:
+        await message.answer('Работ и так нет.')
+        await state.set_state(Form.remont_edit)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
 
 @works_router.message(F.text,Form.deleting_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     data = await state.get_data()
-    if message.text in  data['works']:
-        data['works'].remove(message.text)
+    if '| 'in message.text and  message.text.split('| ')[1] in  data['works']:
+        data['works'].remove(message.text.split('| ')[1])
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
     else:
-        print('пизда')
+        await message.answer('Нет такой работы')
+        await state.set_state(Form.remont_edit)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
 
 @works_router.message(F.text,Form.find_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print('выбор работ')
-    if message.text=='Назад':
+    if message.text=='❌ Отмена':
         await state.set_state(Form.client_start)
         await message.answer('хих',reply_markup=works_edit_kb())
         return
