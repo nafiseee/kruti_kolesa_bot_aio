@@ -7,37 +7,19 @@ import pandas as pd
 from utils.info import info
 from utils.dataframes import df
 from .start import init_work
-class Form(StatesGroup):
-    client_start = State()
-    full_name = State()
-    phone_number = State()
-    act_id = State()
-    b_or_e = State()
-    b_model = State()
-    b_id = State()
-    iot_id = State()
-    find_works = State()
-    find_work = State()
-    add_work = State()
-    find_spare = State()
-    add_spare = State()
-    find_spares = State()
-    wait = State()
-    getting_spare = State()
-    remont_edit = State()
-    deleting_work = State()
-    next_menu = State()
+from create_bot import Form
 
 works_router = Router()
 
 @works_router.message(F.text == "➕ Добавить работу")
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('выюбор группы рабюот')
+    print("Добавление работы")
     await state.set_state(Form.find_work)
     await message.reply("Выбери вид работы:", reply_markup=works_groups(await state.get_data(), df))
     await state.set_state(Form.find_work)
 @works_router.message(F.text=="🗑 Удалить работу",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print("Удалить работу")
     data = await state.get_data()
     if message.text == '❌ Отмена':
         await init_work(state, message)
@@ -52,6 +34,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @works_router.message(F.text,Form.deleting_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print("Удаление ремонта")
     data = await state.get_data()
     if '| 'in message.text and  message.text.split('| ')[1] in  data['works']:
         data['works'].remove(message.text.split('| ')[1])
@@ -64,9 +47,9 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @works_router.message(F.text,Form.find_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('выбор работ')
+    print("поиск работы")
     if message.text=='❌ Отмена':
-        await state.set_state(Form.client_start)
+        await state.set_state(Form.next_menu)
         await message.answer('хих',reply_markup=works_edit_kb())
         return
     if message.text in df[df['type']==await state.get_value('m_or_e')].group.unique():
@@ -79,7 +62,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 #ДОБАВЛЕНИЕ РАБОТЫ
 @works_router.message(F.text,Form.add_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('добавление работы')
+    print("добавление работы")
     data = await state.get_data()
     if message.text in df.loc[((df['group']==data['last_group'])&(df['type']==data['m_or_e']))]['works'].unique():
         data['works'].append(message.text)

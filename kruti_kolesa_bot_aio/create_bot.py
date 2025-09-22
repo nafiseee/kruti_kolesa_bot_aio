@@ -8,6 +8,36 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 #from aiogram.fsm.storage.redis import RedisStorage
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
+from aiogram.fsm.state import State, StatesGroup
+class Form(StatesGroup):
+    client_start = State()
+    full_name = State()
+    phone_number = State()
+    act_id = State()
+    b_or_e = State()
+    b_model = State()
+    b_id = State()
+    iot_id = State()
+    find_works = State()
+    find_work = State()
+    add_work = State()
+    find_spare = State()
+    find_spare_ = State()
+    add_spare = State()
+    add_spare_ = State()
+    find_spares = State()
+    wait = State()
+    getting_spare = State()
+    getting_spare_ = State()
+    remont_edit = State()
+    deleting_spares = State()
+    next_menu = State()
+    akb_menu = State()
+    akb_start = State()
+    deleting_work = State()
+
+
+
 
 # from db_handler.db_class import PostgresHandler
 # pg_db = PostgresHandler(config('PG_LINK'))

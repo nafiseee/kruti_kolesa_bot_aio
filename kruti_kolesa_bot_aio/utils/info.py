@@ -3,7 +3,6 @@ client_work = ['', '', 'Номер телефона: ', 'Акт №', 'Моде�
 async def info(state):
 
     data = await state.get_data()
-    print('ffff',data)
     s = f"<b>Мастер:</b> {data['employer']} | {data['start_time']}\n\n"
     for q,w in enumerate(client_work_keys):
         if w in data:
@@ -14,7 +13,6 @@ async def info(state):
     s+='\n<b>Выполненные работы:</b>\n'
     if data['works']==[]:
         for i in range(3):
-            print('fdddddddddddddddddddd')
             s+='____________\n'
     else:
         n = 1
@@ -33,7 +31,6 @@ async def info(state):
     s+="\n<b>Запчасти:</b>\n"
     if data['spares']==[]:
         for i in range(3):
-            print('fdddddddddddddddddddd')
             s+='____________\n'
         else:
             for i in data['spares']:
@@ -46,13 +43,16 @@ async def info(state):
                         s += f"{i} ({data['works_count'][i]}x)\n"
 
     else:
+        print(data['spares_types'])
         for i in range(len(data['spares'])):
-            if data['spares_types'][i]:
+            if data['spares_types'][i]=='Новый':
                 if i+1<10:
                     s+=" "
-                s+=f"{i+1}| {data['spares'][i]} [б/у]\n"
+                s += f"{i + 1}| {data['spares'][i]}\n"
+
             else:
-                s += f"{i+1}| {data['spares'][i]}\n"
+                s += f"{i + 1}| {data['spares'][i]} [б/у]\n"
+            print(data['spares_types'])
     s+=f"\n<b>Норма часы:</b> {round(sum(data['norm_time']),1)}👺"
 
 

@@ -28,7 +28,6 @@ def m_or_e_kb():
     kb_list = [
         [KeyboardButton(text="🔩 Механика")],
         [KeyboardButton(text="⚡ Электро")],
-        [KeyboardButton(text="↩ Отмена")]
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
@@ -41,7 +40,8 @@ def works_edit_kb():
     kb_list = [
         [KeyboardButton(text="➕ Добавить работу"),KeyboardButton(text="➕ Добавить запчасть")],
         [KeyboardButton(text="✏️Изменить ремонт")],
-        [KeyboardButton(text="Сохранить ремонт 💾")]
+        [KeyboardButton(text="Сохранить ремонт 💾")],
+        [KeyboardButton(text="Отменить ремонт ❌")]
     ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
@@ -125,9 +125,9 @@ def spares_list_for_work():
     kb_list = [
         [KeyboardButton(text="Добавить запчасть")],
         [KeyboardButton(text="Добавить б/у запчасть")],
-        [KeyboardButton(text="Запчасти не использовались")]
+        [KeyboardButton(text="Запчасти не использовались / Отмена")]
     ]
-    kb_list.append([KeyboardButton(text="❌ Отмена")])
+    # kb_list.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,
@@ -201,7 +201,7 @@ def deleting_spares(data):
     print(data)
     kb = []
     for q in range(len(data['spares'])):
-        kb.append([KeyboardButton(text=f"{str(q)}| {data['spares'][q]}")])
+        kb.append([KeyboardButton(text=f"{str(q+1)}| {data['spares'][q]}")])
     kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,

@@ -23,5 +23,4 @@ async def save_remont(state):
     for i in data.keys():
         if i not in to_delete:
             d[i]=data[i]
-    pprint(d)
     await users_collection.insert_one(d)
