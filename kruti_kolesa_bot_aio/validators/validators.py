@@ -23,3 +23,5 @@ def work_is_true(text):
         if text in i:
             return True
     return False
+def akb_id_validate(text):
+    return act_validate(text)

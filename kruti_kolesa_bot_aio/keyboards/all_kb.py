@@ -72,6 +72,16 @@ def akb_works(df):
         input_field_placeholder="Воспользуйтесь меню:"
     )
     return keyboard
+def akb_spares(df):
+    kb = [[KeyboardButton(text=i)] for i in df[df['type']=="АКБ"].spares.unique()]
+    kb.append([KeyboardButton(text='❌ Отмена')])
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
 def akb_start_kb():
     kb_list = [
         [KeyboardButton(text="Начать работу")]
@@ -139,6 +149,18 @@ def spares_list_for_work():
 
 def return_works_kb(data,df):
     kb = [[KeyboardButton(text=i)] for i in df.loc[((df['group']==data['last_group'])&(df['type']==data['m_or_e']))]['works'].unique()]
+    kb.append([KeyboardButton(text="❌ Отмена")])
+    keyboard = ReplyKeyboardMarkup(
+            keyboard=kb,
+            resize_keyboard=True,
+            one_time_keyboard=True,
+            input_field_placeholder="Воспользуйтесь меню:"
+        )
+    for i in kb:
+        print(i)
+    return keyboard
+def return_akb_works_kb(data,df):
+    kb = [[KeyboardButton(text=i)] for i in df.loc[(df['type']=="АКБ")]['works'].unique()]
     kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
             keyboard=kb,

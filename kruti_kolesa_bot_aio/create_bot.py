@@ -35,7 +35,16 @@ class Form(StatesGroup):
     akb_menu = State()
     akb_start = State()
     deleting_work = State()
-
+    getting_akb_spare = State()
+    getting_akb_spare_ = State()
+    set_akb_work = State()
+    find_akb_work = State()
+    add_akb_work = State()
+    act_akb_id = State()
+    akb_id = State()
+    add_akb_spare = ()
+    find_akb_spare = State()
+    add_akb_spare_ = State()
 
 
 

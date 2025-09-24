@@ -115,8 +115,8 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 @questionnaire_router.message(F.text=='🔋 Аккумулятор',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Акб")
-    await state.set_state(Form.akb_start)
-    await message.answer("Меню", reply_markup=akb_start_kb())
+    await state.set_state(Form.act_akb_id)
+    await message.answer("Номер акта:", reply_markup=ReplyKeyboardRemove())
 
 @questionnaire_router.message(F.text == '🎵 Музыка', Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):

@@ -11,7 +11,7 @@ from create_bot import Form
 
 works_router = Router()
 
-@works_router.message(F.text == "➕ Добавить работу")
+@works_router.message(F.text == "➕ Добавить работу",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Добавление работы")
     await state.set_state(Form.find_work)
