@@ -11,8 +11,9 @@ from create_bot import Form
 from validators.validators import act_validate,akb_id_validate
 from aiogram.types import FSInputFile,ReplyKeyboardRemove,CallbackQuery
 from datetime import timedelta
+from db_handler.db_class import get_user_name
 async def init_akb_work(state,message):
-    print('инициализя')
+    print('инициализя akb')
     await state.update_data(works=[], user_id=message.from_user.id)
     await state.update_data(works_count={}, user_id=message.from_user.id)
     await state.update_data(sum_norm_time=0, user_id=message.from_user.id)
@@ -20,6 +21,9 @@ async def init_akb_work(state,message):
     await state.update_data(norm_time=[], user_id=message.from_user.id)
     await state.update_data(spares=[], user_id=message.from_user.id)
     await state.update_data(spares_types=[], user_id=message.from_user.id)
+    await state.update_data(akb=True, user_id=message.from_user.id)
+    await state.update_data(emploer_id=message.from_user.id, user_id=message.from_user.id)
+    await state.update_data(employer_name=await get_user_name(message.from_user.id), user_id=message.from_user.id)
     await message.answer(await info(state), reply_markup=works_edit_kb())
     await state.set_state(Form.akb_menu)
 
@@ -27,7 +31,7 @@ akb_router = Router()
 
 @akb_router.message(F.text,Form.act_akb_id)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("номер акта")
+    print("номер акта akb")
     if not act_validate(message.text):
         await message.reply("Некоректный номер акта. Попробуйте еще раз")
         return
@@ -37,7 +41,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.akb_id)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('номер велика')
+    print('номер  akb')
     if not akb_id_validate(message.text):
         await message.reply("Некоректный номер акб. Попробуйте еще раз")
         return
@@ -48,7 +52,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text=='➕ Добавить запчасть',Form.akb_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Добавить зч")
+    print("Добавить зч akb")
     await state.set_state(Form.getting_akb_spare)
     await message.answer("Введи зч", reply_markup=spares_list_for_work())
 
@@ -61,7 +65,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.add_akb_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("добавление работы")
+    print("добавление работы akb")
     data = await state.get_data()
     if message.text in df.loc[(df['type']=="АКБ")]['works'].unique():
         data['works'].append(message.text)
@@ -76,7 +80,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.getting_akb_spare)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("получение запчасти")
+    print("получение запчасти akb")
     data = await state.get_data()
     v_spares = df[df['type']=='АКБ'].spares.unique()
     if 'б/у' in message.text:
@@ -96,7 +100,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.add_akb_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("добавление запчасти_")
+    print("добавление запчасти_ akb")
     data = await state.get_data()
     if message.text in df.loc[(df['type']=="АКБ")]['spares'].unique():
         data['spares'].append(message.text)
@@ -110,7 +114,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text=="🗑 Удалить запчасть",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("удалить запчасть")
+    print("удалить запчасть akb")
     data = await state.get_data()
     if len(data['spares']):
         await message.reply("Что удалить?", reply_markup=deleting_spares(await state.get_data()))
@@ -122,7 +126,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.deleting_spares)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("удаление запчастей")
+    print("удаление запчастей akb")
     data = await state.get_data()
     if '| 'in message.text and  message.text.split('| ')[1] in  data['spares']:
         print(int(message.text.split('| ')[0]))
@@ -142,7 +146,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
 @akb_router.message(F.text,Form.getting_akb_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Получение запчастей_")
+    print("Получение запчастей_ akb")
     data = await state.get_data()
     v_spares = df[df['type'] == 'АКБ'].spares.unique()
     if message.text == "❌ Отмена":
@@ -160,7 +164,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @akb_router.message(F.text,Form.find_spare)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Поиск запчасти")
+    print("Поиск запчасти akb")
     data = await state.get_data()
     if message.text=='❌ Отмена':
         await state.set_state(Form.client_start)

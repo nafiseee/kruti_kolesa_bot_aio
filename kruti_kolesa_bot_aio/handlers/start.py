@@ -15,9 +15,9 @@ from datetime import timedelta
 import pandas as pd
 from utils.info import info
 from db_handler import db_class
+from db_handler.db_class import get_my_time
 from create_bot import Form
-from utils.message_utils import delete_message
-from create_bot import users_collection
+from db_handler.db_class import check_sub,add_user,get_user_name
 start_photo = FSInputFile('media/sticker.webm', filename='хуй')
 client_work_keys = ['work_type','full_name','phone_number','act_id','b_model','b_id','iot_id']
 client_work = ['','','Номер телефона: ','Акт №','Модель велосипеда: ','Номер велосипеда: ', 'IoT: ']
@@ -37,6 +37,8 @@ async def init_work(state,message):
     await state.update_data(norm_time=[], user_id=message.from_user.id)
     await state.update_data(spares=[], user_id=message.from_user.id)
     await state.update_data(spares_types=[], user_id=message.from_user.id)
+    await state.update_data(emploer_id = message.from_user.id, user_id=message.from_user.id)
+    await state.update_data(employer_name = await get_user_name(message.from_user.id),user_id=message.from_user.id)
     await message.answer(await info(state), reply_markup=works_edit_kb())
     await state.set_state(Form.next_menu)
 
@@ -63,13 +65,14 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.client_start)
 
 
+@questionnaire_router.message(F.text == "⏱ Норма-часы")
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    await message.answer(f"Всего :{str(await get_my_time(message.from_user.id))}",reply_markup=main_kb(message.from_user.id))
+    await state.set_state(Form.client_start)
 
 @questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Сохранить ремонт next_menu")
-    # await init_work(state, message)
-    await message.answer("«Иногда самые важные данные мы храним не в базе, а в моменте. Давай сохраним этот момент, а за технической частью я потом вернусь».")
-    # await state.clear()
     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
@@ -77,20 +80,60 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
                                    reply_markup=main_kb(message.from_user.id))
     await state.set_state(Form.client_start)
     await db_class.save_remont(state)
+    print('fff')
+    if await state.get_value('m_or_e') == 'Электро':
+        await bot.send_message(-1002979979409, await info(state), reply_to_message_id=26)
+        print('Элеткро')
+    else:
+        await bot.send_message(-1002979979409, await info(state), reply_to_message_id=34)
+        print('механика')
 
+@questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.akb_menu)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    print("Сохранить ремонт next_menu")
+    await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+                                   caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+                                   reply_markup=main_kb(message.from_user.id))
+    await state.set_state(Form.client_start)
+    await bot.send_message(-1002979979409, await info(state), reply_to_message_id=30)
+
+    await db_class.save_remont(state)
 
 @start.message(Command('start')) #НАЧАЛО
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("старт епта")
-    await state.clear()
-    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),caption = 'Привет я твой помощник по занесению ремонтов. Что будем делать?', reply_markup=main_kb(message.from_user.id))
-    await state.set_state(Form.client_start)
+    if message.chat.id!=-1002979979409:
+        if await check_sub(message.from_user.id):
+            await state.clear()
+            async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+                await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+                                           caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+                                           reply_markup=main_kb(message.from_user.id))
+                await state.set_state(Form.client_start)
+        else:
+            await message.answer('Как тебя звать? [Фамилия Имя](изменить будет незя)', reply_markup=ReplyKeyboardRemove())
+            await state.set_state(Form.get_name_employer)
+    else:
+            print('пишут не в бота. поэтому отмена.', message.chat.id)
 
-@start.message(F.text=='⚙️ Админ панель') #НАЧАЛО
+@questionnaire_router.message(F.text,Form.get_name_employer)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("админка")
-    await bot.send_video(message.chat.id,open('media/prikol.mp4','rb'))
+    print("регистрация")
+    if name_validate(message.text):
+        await add_user(message.from_user.id,message.text)
+        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+                                    reply_markup=main_kb(message.from_user.id))
+
+        await state.set_state(Form.act_id)
+    else:
+        await message.answer('Что-то не так... пробуй заново /start', reply_markup=ReplyKeyboardRemove())
+
+
+
+
 @questionnaire_router.message(F.text=='🛠️ Техническое обслуживание',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("ТОшка")
@@ -100,7 +143,6 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.update_data(employer=message.from_user.full_name)
         await message.answer('Введи номер акта: ', reply_markup=ReplyKeyboardRemove())
     await state.set_state(Form.act_id)
-    await delete_message(message,state)
 
 @questionnaire_router.message(F.text=='🔧 Клиентский ремонт',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
@@ -115,6 +157,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 @questionnaire_router.message(F.text=='🔋 Аккумулятор',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Акб")
+    await state.clear()
     await state.set_state(Form.act_akb_id)
     await message.answer("Номер акта:", reply_markup=ReplyKeyboardRemove())
 
@@ -156,7 +199,6 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await message.answer('Выберите тип велоиспеда:', reply_markup=m_or_e_kb())
     await state.set_state(Form.b_or_e)
-    await delete_message(message, state)
 @questionnaire_router.message(F.text,Form.b_or_e)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print('Вид велика')
@@ -168,7 +210,6 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await message.answer('Выберите модель велосипеда:', reply_markup=b_models(data['m_or_e']))
     await state.set_state(Form.b_model)
-    await delete_message(message, state)
 @questionnaire_router.message(F.text,Form.b_model)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("модель велика")

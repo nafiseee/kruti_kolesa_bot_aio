@@ -10,7 +10,8 @@ from mechanical_works import mechanical_works
 def main_kb(user_telegram_id: int):
     kb_list = [
         [KeyboardButton(text="🔧 Клиентский ремонт"), KeyboardButton(text="🛠️ Техническое обслуживание")],
-        [KeyboardButton(text="🔋 Аккумулятор"), KeyboardButton(text="☠️☠️☠️☠️")]
+        [KeyboardButton(text="🔋 Аккумулятор"), KeyboardButton(text="☠️☠️☠️☠️")],
+        [KeyboardButton(text="⏱ Норма-часы")]
     ]
     if user_telegram_id in admins:
         kb_list.append([KeyboardButton(text="⚙️ Админ панель")])
@@ -244,4 +245,18 @@ def to_delete_work(data,df):
     )
     for i in kb:
         print(i)
+    return keyboard
+
+def admin_buttons():
+    kb_list = [
+        [KeyboardButton(text="Норма часы всех")],
+        [KeyboardButton(text="Использованные зч")],
+    ]
+    # kb_list.append([KeyboardButton(text="❌ Отмена")])
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
     return keyboard

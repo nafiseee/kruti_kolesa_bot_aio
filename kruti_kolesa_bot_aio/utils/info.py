@@ -3,7 +3,8 @@ client_work = ['', '', 'Номер телефона: ', 'Акт №', 'Моде�
 async def info(state):
 
     data = await state.get_data()
-    s = f"<b>Мастер:</b> {data['employer']} | {data['start_time']}\n\n"
+
+    s = f"<b>Мастер:</b> {data['employer_name']} | {data['start_time']}\n\n"
     for q,w in enumerate(client_work_keys):
         if w in data:
             if client_work[q]:
@@ -56,18 +57,27 @@ async def info(state):
     s+=f"\n<b>Норма часы:</b> {round(sum(data['norm_time']),1)}👺"
 
 
-    s+='<blockquote>'
-    for i in data.keys():
-        if i not in ['works','spares','spares_variant']:
+    # s+='<blockquote>'
+    # for i in data.keys():
+    #     if i not in ['works','spares','spares_variant']:
+    #
+    #         s+=str(i)+"   "+str(data[i])
+    #         s+="\n"
+    # s+="*"*30
+    # s+="\nworks:\n"
+    # for i in data['works']:
+    #     s+=f"{i}\n"
+    # s+="spares:\n"
+    # for i in data['spares']:
+    #     s+=f"{i}\n"
+    # s+='</blockquote>'
+    # print(s)
+    return s
 
-            s+=str(i)+"   "+str(data[i])
-            s+="\n"
-    s+="*"*30
-    s+="\nworks:\n"
-    for i in data['works']:
-        s+=f"{i}\n"
-    s+="spares:\n"
-    for i in data['spares']:
-        s+=f"{i}\n"
-    s+='</blockquote>'
+
+async def info_all_times(a):
+    s = "<b>Норма часы за [просто весь период пусть будет]:</b>\n"
+    for i in a:
+        s+=f"{i}: {a[i]}\n"
+    print(s)
     return s

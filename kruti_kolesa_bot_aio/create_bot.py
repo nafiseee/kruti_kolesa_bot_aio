@@ -10,6 +10,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 from aiogram.fsm.state import State, StatesGroup
 class Form(StatesGroup):
+    get_name_employer = State()
     client_start = State()
     full_name = State()
     phone_number = State()
@@ -45,6 +46,7 @@ class Form(StatesGroup):
     add_akb_spare = ()
     find_akb_spare = State()
     add_akb_spare_ = State()
+    admin = State()
 
 
 
@@ -55,8 +57,11 @@ admins = [int(admin_id) for admin_id in config('ADMINS').split(',')]
 
 async_client = AsyncIOMotorClient('mongodb://localhost:27017/')
 async_db = async_client.telegram_bot
-users_collection = async_db.users
-messages_collection = async_db.messages
+electro = async_db.electro
+mechanical = async_db.mechanical
+akb = async_db.akb
+users = async_db.users
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
