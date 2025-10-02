@@ -42,7 +42,30 @@ async def delete_remont(data):
 
     print('удалил ремонт ес чо')
 
-async def save_message
+async def save_message(message):
+    print("+"*100)
+    pprint(message)
+
+    message_dict = {
+        "message_id": message.message_id,
+        "from_user": {
+            "id": message.from_user.id,
+            "username": message.from_user.username,
+            "first_name": message.from_user.first_name,
+            "last_name": message.from_user.last_name
+        },
+        "chat": {
+            "id": message.chat.id,
+            "type": message.chat.type,
+            "title": message.chat.title if message.chat.title else None,
+            "username": message.chat.username if message.chat.username else None
+        },
+        "date": message.date,
+        "text": message.text,
+        "entities": [entity.to_dict() for entity in message.entities] if message.entities else None
+    }
+
+    messages.insert_one(message_dict)
 async def save_remont(state):
     print('сохран дата')
     data = await state.get_data()
@@ -51,7 +74,7 @@ async def save_remont(state):
         print('уже сохраннеый ремонь,удаляем с базы')
         await delete_remont(data)
     data['sum_norm_time'] = sum(data['norm_time'])
-    to_delete = ['works_count','spares_variant','a','last_group','norm_time','_id','msg']
+    to_delete = ['works_count','spares_variant','a','last_group','norm_time','_id','msg','q']
     d = {}
     for i in data.keys():
         if i not in to_delete:

@@ -17,7 +17,7 @@ from utils.info import info
 from db_handler import db_class
 from db_handler.db_class import get_my_time
 from create_bot import Form
-from db_handler.db_class import check_sub,add_user,get_user_name,find_remont
+from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,save_message
 from aiogram.exceptions import TelegramBadRequest
 from pprint import pp
 from create_bot import bot
@@ -90,35 +90,30 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    f = {'Электро':26,'Механика':34}
+
     print("Сохранить ремонт next_menu")
     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         msg = await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
                                    reply_markup=main_kb(message.from_user.id))
-    await state.update_data(id_from_chat = msg.message_id)
     await state.update_data(chat_id=msg.chat.id)
     await state.set_state(Form.client_start)
     data = await state.get_data()
 
-    if await state.get_value('m_or_e') == 'Электро':
-        a = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=26)
-        if '_id' in data:
-            await bot.delete_message(-1002979979409, data['msg_id'])
-
-    else:
-        a = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=34)
-        if '_id' in data:
-            await bot.delete_message(-1002979979409, data['msg_id'])
-
-
     if '_id' in data:
-        await edit_message_in_topic(bot, -1002979979409, data['msg_id'], "Обновленный текст сообщения!")
         await bot.edit_message_text(
             chat_id=-1002979979409,
-            message_id=data['msg_id'],
-            text='хуй'
-        )
+            message_id=int(data['msg_id']),
+            text=await info(state))
+    else:
+        m_or_e = await state.get_value('m_or_e')
+        print(m_or_e)
+        message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=f[m_or_e])
+        await state.update_data(msg_id = message.message_id)
+
+
     await db_class.save_remont(state)
 
 @questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.akb_menu)
@@ -299,15 +294,12 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     a = await find_remont(message.text)
     await state.update_data(dict(a))
     await state.update_data(editing_saved=True, user_id=message.from_user.id)
-    await state.update_data(msg_id =message.message_id, user_id=message.from_user.id)
-    await state.update_data(chat_id=message.chat.id, user_id=message.from_user.id)
-    await state.update_data(message_thread_id=message.message_thread_id, user_id=message.message_id)
+    await state.update_data(message_id =message.message_id, user_id=message.from_user.id)
     await state.update_data(works_count={}, user_id=message.from_user.id)
     await state.update_data(norm_time=[], user_id=message.from_user.id)
     await state.set_state(Form.next_menu)
     await message.answer(await info(state), reply_markup=works_edit_kb())
-    print(f'сохранение ремонта')
-
+    pp(message)
 @questionnaire_router.message(F.text.contains("Запчасти не использовались"))
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("ЗАпвчасти не использовались")
@@ -320,9 +312,6 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
 @questionnaire_router.message(F.text == "☠️☠️☠️☠️")
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    sent_message = await message.answer("Это сообщение будет удалено через 5 секунд")
-
-    # Удаляем через 5 секунд
-    await asyncio.sleep(5)
-    await sent_message.delete()
+    msg = await state.get_value('q')
+    await bot.delete_message(chat_id=-1002979979409,message_id=msg.message_id)
 
