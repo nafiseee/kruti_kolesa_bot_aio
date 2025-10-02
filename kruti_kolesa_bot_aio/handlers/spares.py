@@ -116,6 +116,11 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     v_spares = df[df['works']==data['works'][-1]]['spares'].unique()
     if 'б/у' in message.text:
         data['spares_types'].append('б/у')
+    elif '❌ Отмена' == message.text:
+        await message.reply(await info(state), reply_markup=works_edit_kb())
+        await state.set_state(Form.next_menu)
+        print('ddddddddddddddddddddddddddddddddddddd')
+        return
     else:
         data['spares_types'].append('Новый')
     await message.reply("Запчасти:", reply_markup=add_spares(v_spares))

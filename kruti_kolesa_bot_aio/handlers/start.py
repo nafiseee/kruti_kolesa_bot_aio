@@ -291,7 +291,13 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @questionnaire_router.message(F.text,Form.saved_remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    a = await find_remont(message.text)
+    name,date = message.text.split('\n')[0].split(' | ')
+    name = name.split(': ')[1]
+    print(await get_user_name(message.from_user.id),name)
+    if await get_user_name(message.from_user.id)!=name:
+        await message.reply("Это не твой ремонт, ты не можешь его поменять", reply_markup=ReplyKeyboardRemove())
+        return
+    a = await find_remont(name,date)
     await state.update_data(dict(a))
     await state.update_data(editing_saved=True, user_id=message.from_user.id)
     await state.update_data(message_id =message.message_id, user_id=message.from_user.id)

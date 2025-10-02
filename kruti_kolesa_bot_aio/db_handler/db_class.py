@@ -98,10 +98,11 @@ async def get_remonts():
     records.reverse()  # Правильный порядок
     return records
 
-async def find_remont(message):
-    name,date = message.split('\n')[0].split(' | ')
-    name = name.split(': ')[1]
+async def find_remont(name,date):
+
     a = await electro.find_one({'employer_name':name,"start_time":date})
+    if not a:
+        a = await mechanical.find_one({'employer_name': name, "start_time": date})
     pprint(a)
     return a
 async def get_my_time(id):
