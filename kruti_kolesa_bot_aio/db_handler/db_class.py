@@ -1,6 +1,7 @@
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
-from create_bot import electro,mechanical,akb,users
+from create_bot import electro,mechanical,akb,users,messages
+from utils.info import info
 from pprint import pprint
 from pymongo import MongoClient, DESCENDING
 import pandas as pd
@@ -29,23 +30,44 @@ async def add_user(tg_id,name):
 async def get_user_name(tg_id):
     return dict(await users.find_one({"tg_id": tg_id}))['name']
 
+async def delete_remont(data):
+    if 'm_or_e' in data:
+        if data['m_or_e'] == "Электро":
+            await electro.delete_one({ "_id": data['_id'] })
+        if data['m_or_e'] == "Механика":
+            await mechanical.delete_one({ "_id": data['_id'] })
+
+    if 'akb' in data:
+        await akb.delete_one({ "_id": data['_id'] })
+
+    print('удалил ремонт ес чо')
+
+async def save_message
 async def save_remont(state):
+    print('сохран дата')
     data = await state.get_data()
+    print('проверка есь ли ремонт уже')
+    if '_id' in data:
+        print('уже сохраннеый ремонь,удаляем с базы')
+        await delete_remont(data)
     data['sum_norm_time'] = sum(data['norm_time'])
-    to_delete = ['works_count','spares_variant','a','last_group','norm_time']
+    to_delete = ['works_count','spares_variant','a','last_group','norm_time','_id','msg']
     d = {}
     for i in data.keys():
         if i not in to_delete:
             d[i]=data[i]
     if 'm_or_e' in data:
         if data['m_or_e']=="Электро":
+            pprint(d,width=10,depth=1)
             await electro.insert_one(d)
-
         if data['m_or_e'] == "Механика":
             await mechanical.insert_one(d)
 
     if 'akb' in data:
         await akb.insert_one(d)
+    pprint(d)
+
+
 async def get_remonts():
     q = electro.find()
     cursor = q.sort('_id', -1).limit(10)
@@ -53,6 +75,12 @@ async def get_remonts():
     records.reverse()  # Правильный порядок
     return records
 
+async def find_remont(message):
+    name,date = message.split('\n')[0].split(' | ')
+    name = name.split(': ')[1]
+    a = await electro.find_one({'employer_name':name,"start_time":date})
+    pprint(a)
+    return a
 async def get_my_time(id):
     e_sum = sum([i['sum_norm_time'] for i in await electro.find({"emploer_id": id}).to_list()])
     m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({"emploer_id": id}).to_list()])

@@ -17,10 +17,27 @@ from utils.info import info
 from db_handler import db_class
 from db_handler.db_class import get_my_time
 from create_bot import Form
-from db_handler.db_class import check_sub,add_user,get_user_name
+from db_handler.db_class import check_sub,add_user,get_user_name,find_remont
+from aiogram.exceptions import TelegramBadRequest
+from pprint import pp
+from create_bot import bot
+from aiogram import Bot
 start_photo = FSInputFile('media/sticker.webm', filename='хуй')
 client_work_keys = ['work_type','full_name','phone_number','act_id','b_model','b_id','iot_id']
 client_work = ['','','Номер телефона: ','Акт №','Модель велосипеда: ','Номер велосипеда: ', 'IoT: ']
+
+
+
+async def edit_message_in_topic(bot: Bot, chat_id: int, message_id: int, new_text: str):
+    # Для редактирования не нужно указывать topic_id, только chat_id и message_id
+    await bot.edit_message_text(
+        chat_id=chat_id,
+        message_id=message_id,
+        text=new_text
+    )
+
+# Пример использования
+
 
 
 start  = Router()
@@ -28,6 +45,7 @@ questionnaire_router = Router()
 works_router = Router()
 
 df = pd.read_excel('works_norm.xlsx',names = ['work','time','type','sale','group'])
+
 async def init_work(state,message):
     print('инициализя')
     await state.update_data(works=[], user_id=message.from_user.id)
@@ -75,22 +93,37 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Сохранить ремонт next_menu")
     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+        msg = await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
                                    reply_markup=main_kb(message.from_user.id))
+    await state.update_data(id_from_chat = msg.message_id)
+    await state.update_data(chat_id=msg.chat.id)
     await state.set_state(Form.client_start)
-    await db_class.save_remont(state)
-    print('fff')
+    data = await state.get_data()
+
     if await state.get_value('m_or_e') == 'Электро':
-        await bot.send_message(-1002979979409, await info(state), reply_to_message_id=26)
-        print('Элеткро')
+        a = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=26)
+        if '_id' in data:
+            await bot.delete_message(-1002979979409, data['msg_id'])
+
     else:
-        await bot.send_message(-1002979979409, await info(state), reply_to_message_id=34)
-        print('механика')
+        a = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=34)
+        if '_id' in data:
+            await bot.delete_message(-1002979979409, data['msg_id'])
+
+
+    if '_id' in data:
+        await edit_message_in_topic(bot, -1002979979409, data['msg_id'], "Обновленный текст сообщения!")
+        await bot.edit_message_text(
+            chat_id=-1002979979409,
+            message_id=data['msg_id'],
+            text='хуй'
+        )
+    await db_class.save_remont(state)
 
 @questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.akb_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Сохранить ремонт next_menu")
+    print("Сохранить ремонт akb_menu")
     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
@@ -113,7 +146,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
                                            reply_markup=main_kb(message.from_user.id))
                 await state.set_state(Form.client_start)
         else:
-            await message.answer('Как тебя звать? [Фамилия Имя](изменить будет незя)', reply_markup=ReplyKeyboardRemove())
+            await message.answer('Как тебя звать? [Фамилия Имя] (изменить будет незя)', reply_markup=ReplyKeyboardRemove())
             await state.set_state(Form.get_name_employer)
     else:
             print('пишут не в бота. поэтому отмена.', message.chat.id)
@@ -255,6 +288,41 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 
 
+@questionnaire_router.message(F.text == "🔄 Отредактировать ремонт")
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    print('измененеие ремонта уже записанного')
+    await message.reply("Перешли ремонт который будем менять", reply_markup=ReplyKeyboardRemove())
+    await state.set_state(Form.saved_remont_edit)
 
+@questionnaire_router.message(F.text,Form.saved_remont_edit)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    a = await find_remont(message.text)
+    await state.update_data(dict(a))
+    await state.update_data(editing_saved=True, user_id=message.from_user.id)
+    await state.update_data(msg_id =message.message_id, user_id=message.from_user.id)
+    await state.update_data(chat_id=message.chat.id, user_id=message.from_user.id)
+    await state.update_data(message_thread_id=message.message_thread_id, user_id=message.message_id)
+    await state.update_data(works_count={}, user_id=message.from_user.id)
+    await state.update_data(norm_time=[], user_id=message.from_user.id)
+    await state.set_state(Form.next_menu)
+    await message.answer(await info(state), reply_markup=works_edit_kb())
+    print(f'сохранение ремонта')
 
+@questionnaire_router.message(F.text.contains("Запчасти не использовались"))
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    print("ЗАпвчасти не использовались")
+    data = await state.get_data()
+    if 'akb' in data:
+        print('акб')
+        await state.set_state(Form.akb_menu)
+    else:
+        await state.set_state(Form.next_menu)
+    await message.answer(await(info(state)), reply_markup=works_edit_kb())
+@questionnaire_router.message(F.text == "☠️☠️☠️☠️")
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    sent_message = await message.answer("Это сообщение будет удалено через 5 секунд")
+
+    # Удаляем через 5 секунд
+    await asyncio.sleep(5)
+    await sent_message.delete()
 

@@ -47,6 +47,7 @@ class Form(StatesGroup):
     find_akb_spare = State()
     add_akb_spare_ = State()
     admin = State()
+    saved_remont_edit = State()
 
 
 
@@ -61,6 +62,8 @@ electro = async_db.electro
 mechanical = async_db.mechanical
 akb = async_db.akb
 users = async_db.users
+messages = async_db.messages
+
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

@@ -139,11 +139,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.remont_edit)
         await message.answer(await info(state), reply_markup=works_edit_kb())
 
-@akb_router.message(F.text.contains("Запчасти не использовались"))
-async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("ЗАпвчасти не использовались")
-    await state.set_state(Form.akb_menu)
-    await message.answer(await(info(state)), reply_markup=works_edit_kb())
+
 @akb_router.message(F.text,Form.getting_akb_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Получение запчастей_ akb")

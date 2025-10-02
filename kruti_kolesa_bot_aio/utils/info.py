@@ -1,9 +1,7 @@
 client_work_keys = ['work_type', 'full_name', 'phone_number', 'act_id', 'b_model', 'b_id', 'iot_id']
 client_work = ['', '', 'Номер телефона: ', 'Акт №', 'Модель велосипеда: ', 'Номер велосипеда: ', 'IoT: ']
 async def info(state):
-
     data = await state.get_data()
-
     s = f"<b>Мастер:</b> {data['employer_name']} | {data['start_time']}\n\n"
     for q,w in enumerate(client_work_keys):
         if w in data:
@@ -22,7 +20,6 @@ async def info(state):
                 if n<10:
                     s+=" "
                 s+=f"{n}| {i}\n"
-
             else:
                 if data['works_count'][i]==1:
                     s += f"{i}\n"
@@ -42,7 +39,6 @@ async def info(state):
                         s += f"{i}\n"
                     else:
                         s += f"{i} ({data['works_count'][i]}x)\n"
-
     else:
         print(data['spares_types'])
         for i in range(len(data['spares'])):
@@ -50,7 +46,6 @@ async def info(state):
                 if i+1<10:
                     s+=" "
                 s += f"{i + 1}| {data['spares'][i]}\n"
-
             else:
                 s += f"{i + 1}| {data['spares'][i]} [б/у]\n"
             print(data['spares_types'])
