@@ -1,5 +1,5 @@
 import logging
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher,types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -48,6 +48,9 @@ class Form(StatesGroup):
     add_akb_spare_ = State()
     admin = State()
     saved_remont_edit = State()
+    akb_remont_edit = State()
+    akb_deleting_spares = State()
+    get_capacity = State()
 
 
 

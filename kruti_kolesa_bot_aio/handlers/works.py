@@ -22,35 +22,37 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Удалить работу")
     data = await state.get_data()
     if message.text == '❌ Отмена':
-        await init_work(state, message)
-        return
+        await state.set_state(Form.next_menu)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
     if len(data['works']):
         await message.reply("Что удалить?", reply_markup=deleting_works(await state.get_data()))
         await state.set_state(Form.deleting_work)
     else:
         await message.answer('Работ и так нет.')
-        await state.set_state(Form.remont_edit)
+        await state.set_state(Form.next_menu)
         await message.answer(await info(state), reply_markup=works_edit_kb())
-
 @works_router.message(F.text,Form.deleting_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("Удаление ремонта")
     data = await state.get_data()
     if '| 'in message.text and  message.text.split('| ')[1] in  data['works']:
         data['works'].remove(message.text.split('| ')[1])
+        data['norm_time'].pop(int(message.text.split('| ')[0])-1)
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
+    elif message.text == "❌ Отмена":
+        await state.set_state(Form.next_menu)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
     else:
         await message.answer('Нет такой работы')
-        await state.set_state(Form.remont_edit)
+        await state.set_state(Form.next_menu)
         await message.answer(await info(state), reply_markup=works_edit_kb())
-
 @works_router.message(F.text,Form.find_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("поиск работы")
     if message.text=='❌ Отмена':
         await state.set_state(Form.next_menu)
-        await message.answer('хих',reply_markup=works_edit_kb())
+        await message.answer('Что делаем?',reply_markup=works_edit_kb())
         return
     if message.text in df[df['type']==await state.get_value('m_or_e')].group.unique():
         await state.update_data(last_group=message.text)

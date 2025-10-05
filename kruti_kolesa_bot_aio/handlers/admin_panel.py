@@ -17,21 +17,24 @@ admin_router = Router()
 
 @admin_router.message(F.text=='⚙️ Админ панель') #НАЧАЛО
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     await message.answer("Что делаем?:", reply_markup=admin_buttons())
     await state.set_state(Form.admin)
-
 @admin_router.message(F.text == 'Норма часы всех',Form.admin)  # НАЧАЛО
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     await message.answer(await info_all_times(await get_times_all()),reply_markup=main_kb(message.from_user.id))
-    await state.set_state()
-
+    await state.set_state(Form.client_start)
 @admin_router.message(F.text == 'Использованные зч',Form.admin)  # НАЧАЛО
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     if await get_lost_spares():
+        await message.answer("Использованные запчасти:", reply_markup=main_kb(message.from_user.id))
         document = FSInputFile('temporary_folder/lost_spares1.xlsx')
         await bot.send_document(message.chat.id, document)
         document = FSInputFile('temporary_folder/lost_spares2.xlsx')
         await bot.send_document(message.chat.id, document)
+    await state.set_state(Form.client_start)
 
 
 

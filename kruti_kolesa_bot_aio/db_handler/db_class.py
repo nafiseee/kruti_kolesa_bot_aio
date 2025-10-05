@@ -14,9 +14,7 @@ async def test_connection():
     except Exception as e:
         print(f"❌ Ошибка подключения: {e}")
         return False
-
 asyncio.run(test_connection())
-
 async def check_sub(i):
 
     a = [dict(i) for i in await users.find().to_list()]
@@ -29,14 +27,12 @@ async def add_user(tg_id,name):
     await users.insert_one({"tg_id": tg_id, "name": name})
 async def get_user_name(tg_id):
     return dict(await users.find_one({"tg_id": tg_id}))['name']
-
 async def delete_remont(data):
     if 'm_or_e' in data:
         if data['m_or_e'] == "Электро":
             await electro.delete_one({ "_id": data['_id'] })
         if data['m_or_e'] == "Механика":
             await mechanical.delete_one({ "_id": data['_id'] })
-
     if 'akb' in data:
         await akb.delete_one({ "_id": data['_id'] })
 
@@ -45,7 +41,6 @@ async def delete_remont(data):
 async def save_message(message):
     print("+"*100)
     pprint(message)
-
     message_dict = {
         "message_id": message.message_id,
         "from_user": {
@@ -64,7 +59,6 @@ async def save_message(message):
         "text": message.text,
         "entities": [entity.to_dict() for entity in message.entities] if message.entities else None
     }
-
     messages.insert_one(message_dict)
 async def save_remont(state):
     print('сохран дата')
@@ -74,7 +68,7 @@ async def save_remont(state):
         print('уже сохраннеый ремонь,удаляем с базы')
         await delete_remont(data)
     data['sum_norm_time'] = sum(data['norm_time'])
-    to_delete = ['works_count','spares_variant','a','last_group','norm_time','_id','msg','q']
+    to_delete = ['works_count','spares_variant','a','last_group','_id','msg','q']
     d = {}
     for i in data.keys():
         if i not in to_delete:
@@ -88,28 +82,38 @@ async def save_remont(state):
 
     if 'akb' in data:
         await akb.insert_one(d)
+    print("dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
     pprint(d)
-
-
 async def get_remonts():
     q = electro.find()
     cursor = q.sort('_id', -1).limit(10)
     records = await cursor.to_list(length=10)
     records.reverse()  # Правильный порядок
     return records
+async def find_remont(name,date,type):
+    if type=='велик':
+        a = await electro.find_one({'employer_name':name,"start_time":date})
+        if not a:
+            a = await mechanical.find_one({'employer_name': name, "start_time": date})
+    else:
+        a = await akb.find_one({'employer_name': name, "start_time": date})
 
-async def find_remont(name,date):
-
-    a = await electro.find_one({'employer_name':name,"start_time":date})
-    if not a:
-        a = await mechanical.find_one({'employer_name': name, "start_time": date})
     pprint(a)
     return a
 async def get_my_time(id):
-    e_sum = sum([i['sum_norm_time'] for i in await electro.find({"emploer_id": id}).to_list()])
-    m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({"emploer_id": id}).to_list()])
-    akb_sum = sum([i['sum_norm_time'] for i in await akb.find({"emploer_id": id}).to_list()])
+    e_sum = sum([i['sum_norm_time'] for i in await electro.find({"user_id": id}).to_list()])
+    m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({"user_id": id}).to_list()])
+    akb_sum = sum([i['sum_norm_time'] for i in await akb.find({"user_id": id}).to_list()])
+    print(e_sum,m_sum,akb_sum)
     return e_sum+m_sum+akb_sum
+
+async def get_pred_iot(data):
+    if data['m_or_e'] == 'Электро':
+        a = [i for i in await electro.find({"b_id": data['b_id'],'b_model':data['b_model']}).to_list()]
+        iots = []
+        for i in a:
+            iots.append(f"iot:|{i['iot_id']}|date:{i['start_time'].split(' ')[0]}")
+        return iots
 
 async def get_times_all():
     all_employers = [dict(i) for i in await users.find().to_list()]

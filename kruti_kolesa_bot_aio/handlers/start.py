@@ -7,7 +7,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import FSInputFile,ReplyKeyboardRemove,CallbackQuery
-from keyboards.all_kb import main_kb,b_models,works_edit_kb,works_groups,return_works_kb,m_or_e_kb,edit_work,akb_menu,akb_start_kb
+from keyboards.all_kb import main_kb,b_models,works_edit_kb,works_groups,return_works_kb,m_or_e_kb,edit_work,akb_menu,akb_start_kb,iots_pred
 from aiogram.utils.chat_action import ChatActionSender
 from validators.validators import name_validate,phone_validate,act_validate,model_validate,id_validate,iot_validate,\
     bycycle_type_validate,work_is_true
@@ -17,7 +17,7 @@ from utils.info import info
 from db_handler import db_class
 from db_handler.db_class import get_my_time
 from create_bot import Form
-from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,save_message
+from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,save_message,get_pred_iot
 from aiogram.exceptions import TelegramBadRequest
 from pprint import pp
 from create_bot import bot
@@ -25,20 +25,6 @@ from aiogram import Bot
 start_photo = FSInputFile('media/sticker.webm', filename='хуй')
 client_work_keys = ['work_type','full_name','phone_number','act_id','b_model','b_id','iot_id']
 client_work = ['','','Номер телефона: ','Акт №','Модель велосипеда: ','Номер велосипеда: ', 'IoT: ']
-
-
-
-async def edit_message_in_topic(bot: Bot, chat_id: int, message_id: int, new_text: str):
-    # Для редактирования не нужно указывать topic_id, только chat_id и message_id
-    await bot.edit_message_text(
-        chat_id=chat_id,
-        message_id=message_id,
-        text=new_text
-    )
-
-# Пример использования
-
-
 
 start  = Router()
 questionnaire_router = Router()
@@ -55,24 +41,31 @@ async def init_work(state,message):
     await state.update_data(norm_time=[], user_id=message.from_user.id)
     await state.update_data(spares=[], user_id=message.from_user.id)
     await state.update_data(spares_types=[], user_id=message.from_user.id)
-    await state.update_data(emploer_id = message.from_user.id, user_id=message.from_user.id)
     await state.update_data(employer_name = await get_user_name(message.from_user.id),user_id=message.from_user.id)
     await message.answer(await info(state), reply_markup=works_edit_kb())
     await state.set_state(Form.next_menu)
 
-@questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
-async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('Отмена add_spare_')
-    await message.answer(await(info(state)), reply_markup=works_edit_kb())
+# @questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
+# async def start_questionnaire_process(message: Message, state: FSMContext):
+#     print('Отмена add_spare_')
+#     await state.set_state(Form.next_menu)
+#     await message.answer(await(info(state)), reply_markup=works_edit_kb())
+#
+
 
 @questionnaire_router.message(F.text == "❌ Отмена",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print('Отмена add_spare_')
+    await state.set_state(Form.next_menu)
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
-@questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
+@questionnaire_router.message(F.text == "❌ Отмена",Form.akb_remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Отмена getting_spare")
-    await init_work(state,message)
+    await state.set_state(Form.akb_menu)
+    await message.answer(await(info(state)), reply_markup=works_edit_kb())
+# @questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
+# async def start_questionnaire_process(message: Message, state: FSMContext):
+#     print("Отмена getting_spare")
+#     await init_work(state,message)
 @questionnaire_router.message(F.text == "Отменить ремонт ❌",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.clear()
@@ -81,17 +74,22 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
                                    reply_markup=main_kb(message.from_user.id))
     await state.set_state(Form.client_start)
-
-
+@questionnaire_router.message(F.text == "Отменить ремонт ❌",Form.akb_menu)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    await state.clear()
+    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+                                   caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+                                   reply_markup=main_kb(message.from_user.id))
+    await state.set_state(Form.client_start)
 @questionnaire_router.message(F.text == "⏱ Норма-часы")
 async def start_questionnaire_process(message: Message, state: FSMContext):
     await message.answer(f"Всего :{str(await get_my_time(message.from_user.id))}",reply_markup=main_kb(message.from_user.id))
     await state.set_state(Form.client_start)
-
-@questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.next_menu)
+from aiogram.filters import StateFilter
+@questionnaire_router.message(F.text == "Сохранить ремонт 💾",StateFilter(Form.next_menu,Form.akb_menu))
 async def start_questionnaire_process(message: Message, state: FSMContext):
     f = {'Электро':26,'Механика':34}
-
     print("Сохранить ремонт next_menu")
     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
@@ -101,36 +99,37 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.update_data(chat_id=msg.chat.id)
     await state.set_state(Form.client_start)
     data = await state.get_data()
-
+    pp(data)
     if '_id' in data:
+        print('есть _id')
         await bot.edit_message_text(
             chat_id=-1002979979409,
             message_id=int(data['msg_id']),
             text=await info(state))
     else:
+        print('сохраняем ремонт')
         m_or_e = await state.get_value('m_or_e')
-        print(m_or_e)
-        message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=f[m_or_e])
+        print(m_or_e,'fffff f')
+        if m_or_e:
+            message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=f[m_or_e])
+        else:
+            message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=30)
         await state.update_data(msg_id = message.message_id)
-
-
     await db_class.save_remont(state)
-
-@questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.akb_menu)
-async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("Сохранить ремонт akb_menu")
-    await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
-    async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
-        await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
-                                   caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
-                                   reply_markup=main_kb(message.from_user.id))
-    await state.set_state(Form.client_start)
-    await bot.send_message(-1002979979409, await info(state), reply_to_message_id=30)
-
-    await db_class.save_remont(state)
-
+# @questionnaire_router.message(F.text == "Сохранить ремонт 💾",Form.akb_menu)
+# async def start_questionnaire_process(message: Message, state: FSMContext):
+#     print("Сохранить ремонт akb_menu")
+#     await state.update_data(end_time=(timedelta(hours=3) + message.date).strftime("%Y-%m-%d %H:%M:%S"))
+#     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
+#         await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
+#                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+#                                    reply_markup=main_kb(message.from_user.id))
+#     await state.set_state(Form.client_start)
+#     await bot.send_message(-1002979979409, await info(state), reply_to_message_id=30)
+#     await db_class.save_remont(state)
 @start.message(Command('start')) #НАЧАЛО
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("старт епта")
     if message.chat.id!=-1002979979409:
         if await check_sub(message.from_user.id):
@@ -145,7 +144,6 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
             await state.set_state(Form.get_name_employer)
     else:
             print('пишут не в бота. поэтому отмена.', message.chat.id)
-
 @questionnaire_router.message(F.text,Form.get_name_employer)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     print("регистрация")
@@ -158,23 +156,22 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.act_id)
     else:
         await message.answer('Что-то не так... пробуй заново /start', reply_markup=ReplyKeyboardRemove())
-
-
-
-
 @questionnaire_router.message(F.text=='🛠️ Техническое обслуживание',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("ТОшка")
+    await state.clear()
     await state.update_data(work_type=message.text, user_id=message.from_user.id)
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await state.update_data(start_time = (timedelta(hours=3)+message.date).strftime("%Y-%m-%d %H:%M:%S"))
         await state.update_data(employer=message.from_user.full_name)
         await message.answer('Введи номер акта: ', reply_markup=ReplyKeyboardRemove())
     await state.set_state(Form.act_id)
-
 @questionnaire_router.message(F.text=='🔧 Клиентский ремонт',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("Клиентский белэжт")
+    await state.clear()
     await state.update_data(work_type=message.text, user_id=message.from_user.id)
     async with ChatActionSender.typing(bot=bot, chat_id=message.chat.id):
         await state.update_data(start_time=(message.date+timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S"))
@@ -184,13 +181,14 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.full_name)
 @questionnaire_router.message(F.text=='🔋 Аккумулятор',Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("Акб")
     await state.clear()
     await state.set_state(Form.act_akb_id)
     await message.answer("Номер акта:", reply_markup=ReplyKeyboardRemove())
-
 @questionnaire_router.message(F.text == '🎵 Музыка', Form.client_start)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("Музыка")
     audio_file1 = FSInputFile("media/1.mp3", "sigma1.mp3")
     audio_file2 = FSInputFile("media/2.mp3", "sigma2.mp3")
@@ -199,6 +197,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await message.answer_audio(audio_file2)
 @questionnaire_router.message(F.text,Form.full_name)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("Имя")
     if not name_validate(message.text):
         await message.reply("Пожалуйста, введите корректное ФИО в формате: Фамилия Имя:")
@@ -209,6 +208,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.phone_number)
 @questionnaire_router.message(F.text,Form.phone_number)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("Номер телеофна")
     if not phone_validate(message.text):
         await message.reply("Пожалуйста введите номер в формате 8XXXXXXXXXX")
@@ -219,6 +219,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.act_id)
 @questionnaire_router.message(F.text,Form.act_id)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("номер акта")
     if not act_validate(message.text):
         await message.reply("Некоректный номер акта. Попробуйте еще раз")
@@ -229,6 +230,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.b_or_e)
 @questionnaire_router.message(F.text,Form.b_or_e)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print('Вид велика')
     if not bycycle_type_validate(message.text):
         await message.reply("Некоректный тип велосипеда. Попробуйте заново",reply_markup=m_or_e_kb())
@@ -240,6 +242,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.b_model)
 @questionnaire_router.message(F.text,Form.b_model)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("модель велика")
     data = await state.get_data()
     if not model_validate(message.text):
@@ -247,6 +250,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         return
 @questionnaire_router.callback_query(F.data, Form.b_model)
 async def start_questionnaire_process(call: CallbackQuery, state: FSMContext):
+    print(f"=======================")
     print("")
     await state.update_data(b_model=call.data)
     await call.message.edit_reply_markup(reply_markup=None)
@@ -254,60 +258,78 @@ async def start_questionnaire_process(call: CallbackQuery, state: FSMContext):
     await state.set_state(Form.b_id)
 @questionnaire_router.message(F.text,Form.b_id)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print('номер велика')
     if not id_validate(message.text):
         await message.reply("Некоректный номер велика. Попробуйте еще раз")
         return
     await state.update_data(b_id=message.text, user_id=message.from_user.id)
     if await state.get_value('m_or_e') != 'Механика':
-        await message.answer('Введите номер IoT модуля:', reply_markup=None)
+        iots = await get_pred_iot(await state.get_data())
+        if iots:
+            await message.answer('Введите номер IoT модуля:', reply_markup=iots_pred(iots))
+        else:
+            await message.answer('Введите номер IoT модуля:', reply_markup=None)
+
         await state.set_state(Form.iot_id)
     else:
         await init_work(state,message)
-
-
 @questionnaire_router.message(F.text,Form.iot_id)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("номер иот")
-    if not iot_validate(message.text):
+    if '|' in message.text:
+        iot_number = message.text.split('|')[1]
+    else:
+        iot_number = message.text
+    if not iot_validate(iot_number):
         await message.reply("Некоректный номер IoT. Попробуйте еще раз")
         return
-    await state.update_data(iot_id=message.text, user_id=message.from_user.id)
+    await state.update_data(iot_id=iot_number, user_id=message.from_user.id)
     await init_work(state,message)
-
 @questionnaire_router.message(F.text == "✏️Изменить ремонт")
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print('измененеие ремонта')
+    print(f"======================={message.text}")
+    print('измененеие ремонта [[[')
     await message.reply("Что делаем?:", reply_markup=edit_work())
-    await state.set_state(Form.remont_edit)
-
-
-
+    if await state.get_value('m_or_e'):
+        await state.set_state(Form.remont_edit)
+    else:
+        await state.set_state(Form.akb_remont_edit)
 @questionnaire_router.message(F.text == "🔄 Отредактировать ремонт")
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print('измененеие ремонта уже записанного')
     await message.reply("Перешли ремонт который будем менять", reply_markup=ReplyKeyboardRemove())
     await state.set_state(Form.saved_remont_edit)
-
 @questionnaire_router.message(F.text,Form.saved_remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     name,date = message.text.split('\n')[0].split(' | ')
     name = name.split(': ')[1]
     print(await get_user_name(message.from_user.id),name)
     if await get_user_name(message.from_user.id)!=name:
         await message.reply("Это не твой ремонт, ты не можешь его поменять", reply_markup=ReplyKeyboardRemove())
         return
-    a = await find_remont(name,date)
+    if 'Номер велосипеда' in message.text:
+        a = await find_remont(name,date,'велик')
+    else:
+        a = await find_remont(name, date, 'акб')
+    await state.clear()
     await state.update_data(dict(a))
     await state.update_data(editing_saved=True, user_id=message.from_user.id)
     await state.update_data(message_id =message.message_id, user_id=message.from_user.id)
     await state.update_data(works_count={}, user_id=message.from_user.id)
-    await state.update_data(norm_time=[], user_id=message.from_user.id)
-    await state.set_state(Form.next_menu)
+    # await state.update_data(norm_time=[], user_id=message.from_user.id)
+    if 'Номер велосипеда' in message.text:
+        await state.set_state(Form.next_menu)
+    else:
+        await state.set_state(Form.akb_menu)
     await message.answer(await info(state), reply_markup=works_edit_kb())
     pp(message)
 @questionnaire_router.message(F.text.contains("Запчасти не использовались"))
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"======================={message.text}")
     print("ЗАпвчасти не использовались")
     data = await state.get_data()
     if 'akb' in data:
@@ -316,8 +338,4 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     else:
         await state.set_state(Form.next_menu)
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
-@questionnaire_router.message(F.text == "☠️☠️☠️☠️")
-async def start_questionnaire_process(message: Message, state: FSMContext):
-    msg = await state.get_value('q')
-    await bot.delete_message(chat_id=-1002979979409,message_id=msg.message_id)
 

@@ -38,13 +38,22 @@ def m_or_e_kb():
         input_field_placeholder="Воспользуйтесь меню:"
     )
     return keyboard
-def works_edit_kb():
-    kb_list = [
-        [KeyboardButton(text="➕ Добавить работу"),KeyboardButton(text="➕ Добавить запчасть")],
-        [KeyboardButton(text="✏️Изменить ремонт")],
-        [KeyboardButton(text="Сохранить ремонт 💾")],
-        [KeyboardButton(text="Отменить ремонт ❌")]
-    ]
+def works_edit_kb(akb = False):
+
+    if akb:
+        kb_list = [
+            [KeyboardButton(text="➕ Добавить работу"), KeyboardButton(text="➕ Добавить запчасть")],
+            [KeyboardButton(text="✏️Изменить ремонт")],[KeyboardButton(text="Добавить емкость 📉")],
+            [KeyboardButton(text="Сохранить ремонт 💾")],
+            [KeyboardButton(text="Отменить ремонт ❌")]
+        ]
+    else:
+        kb_list = [
+            [KeyboardButton(text="➕ Добавить работу"), KeyboardButton(text="➕ Добавить запчасть")],
+            [KeyboardButton(text="✏️Изменить ремонт")],
+            [KeyboardButton(text="Сохранить ремонт 💾")],
+            [KeyboardButton(text="Отменить ремонт ❌")]
+        ]
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,
@@ -207,11 +216,21 @@ def edit_work():
         input_field_placeholder="Воспользуйтесь меню:"
     )
     return keyboard
+
+def iots_pred(iots):
+    kb = [[KeyboardButton(text=i)] for i in iots]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
 def deleting_works(data):
     print(data)
     kb = []
     for q in range(len(data['works'])):
-        kb.append([KeyboardButton(text=f"{str(q)}| {data['works'][q]}")])
+        kb.append([KeyboardButton(text=f"{str(q+1)}| {data['works'][q]}")])
     kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
         keyboard=kb,

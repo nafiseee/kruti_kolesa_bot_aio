@@ -29,7 +29,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.deleting_spares)
     else:
         await message.answer('Запчастей и так нет.')
-        await state.set_state(Form.remont_edit)
+        await state.set_state(Form.next_menu)
         await message.answer(await info(state), reply_markup=works_edit_kb())
 
 @spares_router.message(F.text,Form.deleting_spares)
@@ -40,9 +40,12 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         data['spares'].remove(message.text.split('| ')[1])
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
+    elif message.text == "❌ Отмена":
+        await state.set_state(Form.next_menu)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
     else:
         await message.answer('Нет такой запчасти')
-        await state.set_state(Form.remont_edit)
+        await state.set_state(Form.next_menu)
         await message.answer(await info(state), reply_markup=works_edit_kb())
 
 @spares_router.message(F.text.contains("Запчасти не использовались"))
@@ -59,9 +62,9 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.next_menu)
         return
     elif 'б/у' in message.text:
-        data['spares_types'].append('б/у')
+        await state.update_data(last_spare_type = '[б/У]')
     else:
-        data['spares_types'].append('Новый')
+        await state.update_data(last_spare_type = '')
     await message.reply("Выбери группу запчастей:", reply_markup=return_spares_group(df_spares, await state.get_data()))
     await state.set_state(Form.find_spare_)
 @spares_router.message(F.text,Form.find_spare_)
@@ -86,7 +89,10 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     data = await state.get_data()
     v_spares = df_spares.loc[((df_spares['group'] == data['last_spare_group']) & (df_spares['type'] == data['m_or_e']))]['spares'].unique()
     if message.text in v_spares:
-        data['spares'].append(message.text)
+        if data['last_spare_type']=='':
+            data['spares'].append(message.text)
+        else:
+            data['spares'].append(message.text+' '+data['last_spare_type'])
         await state.update_data(data=data)
         await message.answer(await(info(state)),reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
@@ -115,23 +121,26 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     data = await state.get_data()
     v_spares = df[df['works']==data['works'][-1]]['spares'].unique()
     if 'б/у' in message.text:
-        data['spares_types'].append('б/у')
+        await state.update_data(last_spare_type = '[б/У]')
     elif '❌ Отмена' == message.text:
         await message.reply(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
         print('ddddddddddddddddddddddddddddddddddddd')
         return
     else:
-        data['spares_types'].append('Новый')
+        await state.update_data(last_spare_type = '')
     await message.reply("Запчасти:", reply_markup=add_spares(v_spares))
     await state.set_state(Form.add_spare)
     await state.update_data(spares_variant=v_spares)
 @spares_router.message(F.text,Form.add_spare)
 async def start_questionnaire_process(message: Message, state: FSMContext):
-    print("добавление запччасти")
+    print("добавление запччасти",message.text)
     data = await state.get_data()
     if message.text in list(data['spares_variant']):
-        data['spares'].append(message.text)
+        if data['last_spare_type'] == '':
+            data['spares'].append(message.text)
+        else:
+            data['spares'].append(message.text + ' ' + data['last_spare_type'])
         await state.update_data(data=data)
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)

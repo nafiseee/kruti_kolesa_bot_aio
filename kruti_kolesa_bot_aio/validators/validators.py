@@ -10,6 +10,9 @@ def phone_validate(text):
 def act_validate(text):
     pattern = r'[0-9]+$'
     return bool(re.match(pattern, text))
+def capacity_validate(text):
+    pattern = r'^[0-9]*\.?[0-9]+$'
+    return bool(re.match(pattern, text))
 def model_validate(text):
     return text in ["Шаркусь монстр 15","Шаркусь монстр 20","Мингто монстр 20","Монстр про","Крути 15"]
 def id_validate(text):
