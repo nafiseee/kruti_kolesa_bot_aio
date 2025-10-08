@@ -153,7 +153,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
                                     caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
                                     reply_markup=main_kb(message.from_user.id))
 
-        await state.set_state(Form.act_id)
+        await state.set_state(Form.client_start)
     else:
         await message.answer('Что-то не так... пробуй заново /start', reply_markup=ReplyKeyboardRemove())
 @questionnaire_router.message(F.text=='🛠️ Техническое обслуживание',Form.client_start)

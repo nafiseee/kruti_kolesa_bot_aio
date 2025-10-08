@@ -73,9 +73,9 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
                     (df['type']==data['m_or_e'])&
                     (df['works']==message.text))]['time'].iloc[0]))
         await state.update_data(data=data)
-        await state.set_state(Form.getting_spare)
+        await state.set_state(Form.getting_spare_for_work)
         await message.answer("Введи зч", reply_markup=spares_list_for_work())
     else:
-        await message.reply("Выбери вид работы:", reply_markup=works_groups(data,df))
-        await state.set_state(Form.find_work)
+        await message.reply("Выбери работу:", reply_markup=return_works_kb(await state.get_data(),df))
+        await state.set_state(Form.add_work)
 

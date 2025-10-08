@@ -10,7 +10,7 @@ from utils.info import info,info_all_times
 from utils.dataframes import df, df_spares
 from create_bot import Form
 from create_bot import bot
-from db_handler.db_class import get_my_time,get_times_all,get_lost_spares
+from db_handler.db_class import get_my_time,get_times_all,get_lost_spares,export_collections_to_xlsx
 from aiogram.types.input_file import FSInputFile
 admin_router = Router()
 
@@ -35,6 +35,14 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         document = FSInputFile('temporary_folder/lost_spares2.xlsx')
         await bot.send_document(message.chat.id, document)
     await state.set_state(Form.client_start)
-
-
-
+@admin_router.message(F.text == 'Все работы',Form.admin)
+async def start_questionnaire_process(message: Message, state: FSMContext):
+    await export_collections_to_xlsx()
+    await message.answer("Использованные запчасти:", reply_markup=main_kb(message.from_user.id))
+    await state.set_state(Form.client_start)
+    document = FSInputFile('temporary_folder/electro.xlsx')
+    await bot.send_document(message.chat.id, document)
+    document = FSInputFile('temporary_folder/mechanical.xlsx')
+    await bot.send_document(message.chat.id, document)
+    document = FSInputFile('temporary_folder/akb.xlsx')
+    await bot.send_document(message.chat.id, document)

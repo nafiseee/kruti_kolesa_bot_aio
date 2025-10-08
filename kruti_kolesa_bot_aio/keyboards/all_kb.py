@@ -193,6 +193,7 @@ def return_spares_group(df,data):
     )
     return keyboard
 def return_spares(df,data):
+    print(data)
     kb = [[KeyboardButton(text=i)] for i in df.loc[((df['group']==data['last_spare_group'])&(df['type']==data['m_or_e']))]['spares'].unique()]
     kb.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(
@@ -271,6 +272,7 @@ def admin_buttons():
     kb_list = [
         [KeyboardButton(text="Норма часы всех")],
         [KeyboardButton(text="Использованные зч")],
+        [KeyboardButton(text="Все работы")],
     ]
     # kb_list.append([KeyboardButton(text="❌ Отмена")])
     keyboard = ReplyKeyboardMarkup(

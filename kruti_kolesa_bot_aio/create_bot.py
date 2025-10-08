@@ -51,6 +51,7 @@ class Form(StatesGroup):
     akb_remont_edit = State()
     akb_deleting_spares = State()
     get_capacity = State()
+    getting_spare_for_work = State()
 
 
 

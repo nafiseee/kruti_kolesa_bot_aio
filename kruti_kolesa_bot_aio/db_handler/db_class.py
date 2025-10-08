@@ -153,3 +153,21 @@ async def get_lost_spares():
     print(all_spares)
     print()
     return True
+async def export_collections_to_xlsx():
+    e  = [dict(i) for i in await electro.find().to_list()]
+    df = pd.DataFrame(e)
+    if '_id' in df.columns:
+        df = df.drop('_id', axis=1)
+    df.to_excel('temporary_folder/electro.xlsx', index=False)
+
+    e = [dict(i) for i in await mechanical.find().to_list()]
+    df = pd.DataFrame(e)
+    if '_id' in df.columns:
+        df = df.drop('_id', axis=1)
+    df.to_excel('temporary_folder/mechanical.xlsx', index=False)
+
+    e = [dict(i) for i in await akb.find().to_list()]
+    df = pd.DataFrame(e)
+    if '_id' in df.columns:
+        df = df.drop('_id', axis=1)
+    df.to_excel('temporary_folder/akb.xlsx', index=False)
