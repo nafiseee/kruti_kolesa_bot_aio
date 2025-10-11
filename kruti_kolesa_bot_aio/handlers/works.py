@@ -13,12 +13,14 @@ works_router = Router()
 
 @works_router.message(F.text == "➕ Добавить работу",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()}\n=============================")
     print("Добавление работы")
     await state.set_state(Form.find_work)
     await message.reply("Выбери вид работы:", reply_markup=works_groups(await state.get_data(), df))
     await state.set_state(Form.find_work)
 @works_router.message(F.text=="🗑 Удалить работу",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()}\n=============================")
     print("Удалить работу")
     data = await state.get_data()
     if message.text == '❌ Отмена':
@@ -33,6 +35,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await message.answer(await info(state), reply_markup=works_edit_kb())
 @works_router.message(F.text,Form.deleting_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()}\n=============================")
     print("Удаление ремонта")
     data = await state.get_data()
     if '| 'in message.text and  message.text.split('| ')[1] in  data['works']:
@@ -49,6 +52,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await message.answer(await info(state), reply_markup=works_edit_kb())
 @works_router.message(F.text,Form.find_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()}\n=============================")
     print("поиск работы")
     if message.text=='❌ Отмена':
         await state.set_state(Form.next_menu)
@@ -64,8 +68,13 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 #ДОБАВЛЕНИЕ РАБОТЫ
 @works_router.message(F.text,Form.add_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()}\n=============================")
     print("добавление работы")
     data = await state.get_data()
+    if 'Отмена' in message.text:
+        await message.reply("Выбери вид работы:", reply_markup=works_groups(await state.get_data(), df))
+        await state.set_state(Form.find_work)
+        return
     if message.text in df.loc[((df['group']==data['last_group'])&(df['type']==data['m_or_e']))]['works'].unique():
         data['works'].append(message.text)
         data['norm_time'].append(float(

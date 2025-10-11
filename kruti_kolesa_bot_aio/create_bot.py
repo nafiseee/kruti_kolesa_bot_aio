@@ -9,6 +9,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import MongoClient
 from aiogram.fsm.state import State, StatesGroup
+from aioredis import Redis
+from aiogram.fsm.storage.redis import RedisStorage
 class Form(StatesGroup):
     get_name_employer = State()
     client_start = State()
@@ -52,6 +54,10 @@ class Form(StatesGroup):
     akb_deleting_spares = State()
     get_capacity = State()
     getting_spare_for_work = State()
+    norm_times_menu = State()
+    norm_times_menu_admin = State()
+    get_norm_diapazon = State()
+    get_norm_diapazon_admin = State()
 
 
 
@@ -72,6 +78,6 @@ messages = async_db.messages
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
+redis = Redis()
 bot = Bot(token=config('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher(storage=MemoryStorage())
+dp = Dispatcher(storage=RedisStorage(redis=redis))

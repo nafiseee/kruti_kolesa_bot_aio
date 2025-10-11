@@ -5,6 +5,7 @@ from utils.info import info
 from pprint import pprint
 from pymongo import MongoClient, DESCENDING
 import pandas as pd
+from datetime import datetime
 async def test_connection():
     try:
         client = AsyncIOMotorClient('mongodb://localhost:27017/')
@@ -100,13 +101,77 @@ async def find_remont(name,date,type):
 
     pprint(a)
     return a
-async def get_my_time(id):
-    e_sum = sum([i['sum_norm_time'] for i in await electro.find({"user_id": id}).to_list()])
-    m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({"user_id": id}).to_list()])
-    akb_sum = sum([i['sum_norm_time'] for i in await akb.find({"user_id": id}).to_list()])
-    print(e_sum,m_sum,akb_sum)
-    return e_sum+m_sum+akb_sum
 
+
+# async def get_my_time(id,start_str,end_str):
+#
+#     e_sum = sum([i['sum_norm_time'] for i in await electro.find({
+#         "user_id": id,
+#         "start_time": {"$gte": start_str, "$lt": end_str}
+#     }).to_list()])
+#
+#     m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
+#         "user_id": id,
+#         "start_time": {"$gte": start_str, "$lt": end_str}
+#     }).to_list()])
+#
+#     akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
+#         "user_id": id,
+#         "start_time": {"$gte": start_str, "$lt": end_str}
+#     }).to_list()])
+#
+#     print(e_sum, m_sum, akb_sum)
+#     return str(round(e_sum + m_sum + akb_sum,1))
+
+
+async def get_my_time(id,start_str = None, end_str = None,q=False):
+    text = ''
+    print(start_str)
+    if start_str:
+        print('fff')
+        e_sum = sum([i['sum_norm_time'] for i in await electro.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lt": end_str}
+        }).to_list()])
+
+        m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lt": end_str}
+        }).to_list()])
+
+        akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lt": end_str}
+        }).to_list()])
+        if q:
+            return str(round(e_sum + m_sum + akb_sum,1) )
+        else:
+            return f"Всего: {str(round(e_sum + m_sum + akb_sum,1))} за период {start_str} >> {end_str}\n"
+    else:
+
+        now = datetime.now()
+        start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
+        start_str = start_of_day.strftime("%Y-%m-%d %H:%M:%S")
+        end_str = end_of_day.strftime("%Y-%m-%d %H:%M:%S")
+
+        e_sum = sum([i['sum_norm_time'] for i in await electro.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lte": end_str}
+        }).to_list()])
+        m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lte": end_str}
+        }).to_list()])
+        akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lte": end_str}
+        }).to_list()])
+        print(e_sum, m_sum, akb_sum)
+        if q:
+            return str(e_sum+m_sum+akb_sum)
+        else:
+            return f"Всего: {str(e_sum+m_sum+akb_sum)} за сегодня.\n"
 async def get_pred_iot(data):
     if data['m_or_e'] == 'Электро':
         a = [i for i in await electro.find({"b_id": data['b_id'],'b_model':data['b_model']}).to_list()]
@@ -115,14 +180,33 @@ async def get_pred_iot(data):
             iots.append(f"iot:|{i['iot_id']}|date:{i['start_time'].split(' ')[0]}")
         return iots
 
-async def get_times_all():
+async def get_times_all(start_str=None,end_str=None):
     all_employers = [dict(i) for i in await users.find().to_list()]
-    print(all_employers)
-    a = {}
-    for empl in all_employers:
-        a[await get_user_name(empl['tg_id'])] = await get_my_time(empl['tg_id'])
-    print(a)
-    return a
+    if start_str:
+       text = f"nЗа период: {start_str} >> {end_str}\n\n"
+       for empl in all_employers:
+           text += f"{await get_user_name(empl['tg_id'])}: {await get_my_time(empl['tg_id'], start_str=start_str, end_str=end_str, q=True)}\n"
+    else:
+        print(all_employers)
+        text = 'За сегодня:\n\n'
+        for empl in all_employers:
+            text+= f"{await get_user_name(empl['tg_id'])}: {await get_my_time(empl['tg_id'],q = True)}\n"
+
+        now = datetime.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if now.month == 12:
+            end_of_month = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            end_of_month = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_str = start_of_month.strftime("%Y-%m-%d %H:%M:%S")
+        end_str = end_of_month.strftime("%Y-%m-%d %H:%M:%S")
+        text+=f"\nЗа этот месяц:\n\n"
+        for empl in all_employers:
+            text+= f"{await get_user_name(empl['tg_id'])}: {await get_my_time(empl['tg_id'],start_str=start_str,end_str=end_str,q = True)}\n"
+
+
+
+    return text
 
 async def get_lost_spares():
     all_spares = []

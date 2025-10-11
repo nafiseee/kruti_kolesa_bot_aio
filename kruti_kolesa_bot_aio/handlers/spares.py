@@ -14,6 +14,7 @@ spares_router = Router()
 
 @spares_router.message(F.text == '➕ Добавить запчасть', Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("Добавить зч")
     await state.set_state(Form.getting_spare_)
     await message.answer("Введи зч", reply_markup=spares_list_for_work())
@@ -21,6 +22,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text == "🗑 Удалить запчасть", Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("удалить запчасть")
     data = await state.get_data()
     spares_list = data.get('spares', [])
@@ -36,6 +38,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.deleting_spares)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("удаление запчастей")
     data = await state.get_data()
     spares_list = data.get('spares', [])
@@ -66,6 +69,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text.contains("Запчасти не использовались"))
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("Запчасти не использовались")
     await state.set_state(Form.next_menu)
     await message.answer(await info(state), reply_markup=works_edit_kb())
@@ -73,12 +77,14 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.getting_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("Получение запчастей_")
     data = await state.get_data()
 
     if message.text == "❌ Отмена":
-        await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+
         return
     elif 'б/у' in message.text.lower():
         await state.update_data(last_spare_type='[б/У]')
@@ -98,6 +104,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.find_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("поиск зч_")
     data = await state.get_data()
 
@@ -123,6 +130,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.add_spare_)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("добавление запчасти_")
     data = await state.get_data()
 
@@ -166,6 +174,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.find_spare)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("Поиск запчасти")
     data = await state.get_data()
 
@@ -191,8 +200,13 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
 @spares_router.message(F.text, Form.getting_spare_for_work)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("получение запчасти")
     data = await state.get_data()
+    if message.text == '❌ Отмена':  # ДОБАВИТЬ обработку отмены
+        await state.set_state(Form.next_menu)
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+        return
 
     works_list = data.get('works', [])
     if not works_list:
@@ -219,11 +233,14 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
     await message.answer("Запчасти:", reply_markup=add_spares(v_spares))
     await state.set_state(Form.add_spare)
-    await state.update_data(spares_variant=v_spares)
+    print(v_spares)
+    await state.update_data(spares_variant=list(v_spares))
+
 
 
 @spares_router.message(F.text, Form.add_spare)
 async def start_questionnaire_process(message: Message, state: FSMContext):
+    print(f"========={await state.get_state()} {message.from_user.full_name} {message.text}\n=============================")
     print("добавление запчасти", message.text)
     data = await state.get_data()
     spares_variant = data.get('spares_variant', [])
@@ -232,7 +249,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.getting_spare_for_work)
         await message.answer('Выбкри тип запчасти', reply_markup=spares_list_for_work())
         return
-
+    print(list(spares_variant))
     if message.text in list(spares_variant):
         # Формируем запчасть с учетом типа
         spare_to_add = message.text

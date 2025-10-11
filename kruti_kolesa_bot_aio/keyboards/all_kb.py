@@ -282,3 +282,25 @@ def admin_buttons():
         input_field_placeholder="Воспользуйтесь меню:"
     )
     return keyboard
+
+
+def cancel():
+    kb_list = [[KeyboardButton(text="❌ Отмена")]]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
+
+def norm_times_menu():
+    kb_list = [[KeyboardButton(text="Выбрать диапазон")],
+               [KeyboardButton(text="❌ Отмена")]]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=kb_list,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        input_field_placeholder="Воспользуйтесь меню:"
+    )
+    return keyboard
