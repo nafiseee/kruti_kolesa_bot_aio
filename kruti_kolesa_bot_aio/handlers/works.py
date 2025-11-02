@@ -40,7 +40,10 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     data = await state.get_data()
     if '| 'in message.text and  message.text.split('| ')[1] in  data['works']:
         data['works'].remove(message.text.split('| ')[1])
+        await message.answer(f"Удалено: {message.text.split('| ')[1]}", reply_markup=works_edit_kb())
         data['norm_time'].pop(int(message.text.split('| ')[0])-1)
+        await state.update_data(works = data['works'])
+        await state.update_data(norm_time=data['norm_time'])
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.next_menu)
     elif message.text == "❌ Отмена":
@@ -58,7 +61,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await state.set_state(Form.next_menu)
         await message.answer('Что делаем?',reply_markup=works_edit_kb())
         return
-    if message.text in df[df['type']==await state.get_value('m_or_e')].group.unique():
+    if message.text in df[df['type']==dict(await state.get_data())['m_or_e']].group.unique():
         await state.update_data(last_group=message.text)
         await state.set_state(Form.add_work)
         await message.reply("Выбери работу:",reply_markup=return_works_kb(await state.get_data(),df))

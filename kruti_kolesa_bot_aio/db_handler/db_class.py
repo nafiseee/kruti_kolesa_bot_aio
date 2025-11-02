@@ -13,9 +13,16 @@ async def test_connection():
         print("✅ MongoDB подключена успешно")
         return True
     except Exception as e:
-        print(f"❌ Ошибка подключения: {e}")
-        return False
-asyncio.run(test_connection())
+        print(f"❌ Ошибка подключения по localhost: {e}")
+        try:
+            client = AsyncIOMotorClient('mongodb://adminuser:adminpassword@185.119.59.184:27017/')
+            await client.admin.command('ping')
+            print("✅ MongoDB подключена успешно по ip")
+            return True
+        except Exception as e:
+            print(f"❌ Ошибка подключения: {e}")
+            return False
+# asyncio.run(test_connection())
 async def check_sub(i):
 
     a = [dict(i) for i in await users.find().to_list()]
@@ -157,15 +164,15 @@ async def get_my_time(id,start_str = None, end_str = None,q=False):
 
         e_sum = sum([i['sum_norm_time'] for i in await electro.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lte": end_str}
+            "start_time": {"$gte": start_str}
         }).to_list()])
         m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lte": end_str}
+            "start_time": {"$gte": start_str}
         }).to_list()])
         akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lte": end_str}
+            "start_time": {"$gte": start_str}
         }).to_list()])
         print(e_sum, m_sum, akb_sum)
         if q:

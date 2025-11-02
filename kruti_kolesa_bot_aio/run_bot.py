@@ -7,8 +7,9 @@ from handlers.akb import akb_router
 from handlers.other  import other
 from handlers.admin_panel import  admin_router
 # from work_time.time_func import send_time_msg
-
+print(dp,'КУТАКККК КККК')
 async def main():
+    print(dp,'КУТАКККК')
     # scheduler.add_job(send_time_msg, 'interval', seconds=10)
     # scheduler.start()
     dp.include_router(works_router)

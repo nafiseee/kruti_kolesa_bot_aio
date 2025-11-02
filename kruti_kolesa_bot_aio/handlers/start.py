@@ -21,6 +21,7 @@ from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,sav
 from aiogram.exceptions import TelegramBadRequest
 from pprint import pp
 from create_bot import bot
+import os
 from aiogram import Bot
 from datetime import datetime
 start_photo = FSInputFile('media/sticker.webm', filename='хуй')
@@ -30,7 +31,8 @@ client_work = ['','','Номер телефона: ','Акт №','Модель 
 start  = Router()
 questionnaire_router = Router()
 works_router = Router()
-
+print(os.listdir()
+      )
 df = pd.read_excel('works_norm.xlsx',names = ['work','time','type','sale','group'])
 
 async def init_work(state,message):
@@ -149,7 +151,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
             bot.delete_message(chat_id=-1002979979409,
                 message_id=int(data['msg_id']))
             print('сохраняем ремонт')
-            m_or_e = await state.get_value('m_or_e')
+            m_or_e = await state.get_data()['m_or_e']
             print(m_or_e, 'fffff f')
             if m_or_e:
                 message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=f[m_or_e])
@@ -159,9 +161,8 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
     else:
         print('сохраняем ремонт')
-        m_or_e = await state.get_value('m_or_e')
-        print(m_or_e,'fffff f')
-        if m_or_e:
+        if 'm_or_e' in dict(await state.get_data()):
+            m_or_e = dict(await state.get_data())['m_or_e']
             message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=f[m_or_e])
         else:
             message = await bot.send_message(-1002979979409, await info(state), reply_to_message_id=30)
@@ -202,7 +203,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     if name_validate(message.text):
         await add_user(message.from_user.id,message.text)
         await message.answer_photo(photo=FSInputFile('media/1.jpg', filename='Снеговик'),
-                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать?',
+                                    caption='Привет я твой помощник по занесению ремонтов. Что будем делать? /start',
                                     reply_markup=main_kb(message.from_user.id))
 
         await state.set_state(Form.client_start)
@@ -320,7 +321,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await message.reply("Некоректный номер велика. Попробуйте еще раз")
         return
     await state.update_data(b_id=message.text, user_id=message.from_user.id)
-    if await state.get_value('m_or_e') != 'Механика':
+    if dict(await state.get_data())['m_or_e'] != 'Механика':
         iots = await get_pred_iot(await state.get_data())
         if iots:
             await message.answer('Введите номер IoT модуля:', reply_markup=iots_pred(iots))
@@ -348,7 +349,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     print(f"======================={message.text}")
     print('измененеие ремонта [[[')
     await message.reply("Что делаем?:", reply_markup=edit_work())
-    if await state.get_value('m_or_e'):
+    if dict(await state.get_data())['m_or_e']:
         await state.set_state(Form.remont_edit)
     else:
         await state.set_state(Form.akb_remont_edit)
