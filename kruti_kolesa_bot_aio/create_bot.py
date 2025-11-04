@@ -1,22 +1,16 @@
-
-print('КНАЧАЛОЙ')
-
 import logging
 import os
 from aiogram import Bot, Dispatcher,types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.fsm.storage.memory import MemoryStorage
 from decouple import config
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-#from aiogram.fsm.storage.redis import RedisStorage
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo import MongoClient
 from aiogram.fsm.state import State, StatesGroup
 from redis.asyncio import Redis
 from aiogram.fsm.storage.redis import RedisStorage
 
-print('КУТАКУЦНННННННИЦИИЦККК ЗУЙ')
+
 class Form(StatesGroup):
     get_name_employer = State()
     client_start = State()
@@ -66,9 +60,7 @@ class Form(StatesGroup):
     get_norm_diapazon_admin = State()
 
 
-print('КУТАКККК ЗУЙ')
-# from db_handler.db_class import PostgresHandler
-# pg_db = PostgresHandler(config('PG_LINK'))
+
 scheduler = AsyncIOScheduler()
 admins = [int(admin_id) for admin_id in config('ADMINS').split(',')]
 # def get_connection():
@@ -90,14 +82,13 @@ admins = [int(admin_id) for admin_id in config('ADMINS').split(',')]
 #             return False
 
 async_client = AsyncIOMotorClient('mongodb://adminuser:adminpassword@mongodb:27017/')
+print('подключение к монго')
 async_db = async_client.telegram_bot
 electro = async_db.electro
 mechanical = async_db.mechanical
 akb = async_db.akb
 users = async_db.users
 messages = async_db.messages
-
-
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -108,6 +99,8 @@ redis = Redis(
     port=6379,
     socket_connect_timeout=10# ← Берем из окружения
 )
-print(redis.ping())
+
 bot = Bot(token=config('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=RedisStorage.from_url("redis://redis:6379/0"))
+print('подключение к редис')
+print(redis)

@@ -133,23 +133,29 @@ async def find_remont(name,date,type):
 
 async def get_my_time(id,start_str = None, end_str = None,q=False):
     text = ''
-    print(start_str)
+
     if start_str:
         print('fff')
+        start_str += " 00:00:00"
+        end_str += " 23:59:59"
         e_sum = sum([i['sum_norm_time'] for i in await electro.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lt": end_str}
+            "start_time": {"$gte": start_str, "$lte": end_str}
         }).to_list()])
 
         m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lt": end_str}
+            "start_time": {"$gte": start_str, "$lte": end_str}
         }).to_list()])
 
         akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
             "user_id": id,
-            "start_time": {"$gte": start_str, "$lt": end_str}
+            "start_time": {"$gte": start_str, "$lte": end_str}
         }).to_list()])
+        print(akb.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lte": end_str}
+        }),flush=True)
         if q:
             return str(round(e_sum + m_sum + akb_sum,1) )
         else:
@@ -164,16 +170,21 @@ async def get_my_time(id,start_str = None, end_str = None,q=False):
 
         e_sum = sum([i['sum_norm_time'] for i in await electro.find({
             "user_id": id,
-            "start_time": {"$gte": start_str}
+            "start_time": {"$gte": start_str, "$lt": end_str}
         }).to_list()])
         m_sum = sum([i['sum_norm_time'] for i in await mechanical.find({
             "user_id": id,
-            "start_time": {"$gte": start_str}
+            "start_time": {"$gte": start_str, "$lt": end_str}
         }).to_list()])
         akb_sum = sum([i['sum_norm_time'] for i in await akb.find({
             "user_id": id,
-            "start_time": {"$gte": start_str}
+            "start_time": {"$gte": start_str, "$lt": end_str}
         }).to_list()])
+        print(akb.find({
+            "user_id": id,
+            "start_time": {"$gte": start_str, "$lt": end_str}
+        }).to_list())
+        print(start_str)
         print(e_sum, m_sum, akb_sum)
         if q:
             return str(e_sum+m_sum+akb_sum)
@@ -213,7 +224,7 @@ async def get_times_all(start_str=None,end_str=None):
 
 
 
-    return text
+    return text+start_str+end_str
 
 async def get_lost_spares():
     all_spares = []

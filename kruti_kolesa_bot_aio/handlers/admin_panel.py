@@ -1,17 +1,13 @@
 from aiogram import Router, F
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message
-from keyboards.all_kb import main_kb, b_models, works_edit_kb, works_groups, return_works_kb, m_or_e_kb, \
-    add_spares, spares_list_for_work, return_spares_group, return_spares, deleting_spares,admin_buttons
 from aiogram.fsm.context import FSMContext
-from db_handler.db_class import get_remonts
-import pandas as pd
-from utils.info import info,info_all_times
-from utils.dataframes import df, df_spares
+from aiogram.types import Message
+from aiogram.types.input_file import FSInputFile
+
 from create_bot import Form
 from create_bot import bot
-from db_handler.db_class import get_my_time,get_times_all,get_lost_spares,export_collections_to_xlsx
-from aiogram.types.input_file import FSInputFile
+from db_handler.db_class import get_times_all, get_lost_spares, export_collections_to_xlsx
+from keyboards.all_kb import main_kb, admin_buttons
+
 admin_router = Router()
 from datetime import datetime
 from keyboards.all_kb import norm_times_menu
@@ -73,7 +69,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
         await message.answer("Использованные запчасти:", reply_markup=main_kb(message.from_user.id))
         document = FSInputFile('temporary_folder/lost_spares1.xlsx')
         await bot.send_document(message.chat.id, document)
-        document = FSInputFile('temporary_folder/lost_spares2.xlsx')
+        document = FSInputFile('temporary_folder/lost_pares2.xlsx')
         await bot.send_document(message.chat.id, document)
     await state.set_state(Form.client_start)
 @admin_router.message(F.text == 'Все работы',Form.admin)

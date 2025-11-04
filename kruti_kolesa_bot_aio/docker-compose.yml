@@ -9,6 +9,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: adminuser
       MONGO_INITDB_ROOT_PASSWORD: adminpassword
+      PYTHONUNBUFFERED: 1
     command: [
       "--auth",
       "--bind_ip_all",

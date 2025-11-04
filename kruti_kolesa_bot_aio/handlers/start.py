@@ -1,16 +1,11 @@
 from aiogram import Router, F
-import asyncio
-from create_bot import bot
-from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import FSInputFile,ReplyKeyboardRemove,CallbackQuery
 from keyboards.all_kb import main_kb,b_models,works_edit_kb,works_groups,return_works_kb,m_or_e_kb,edit_work,akb_menu,akb_start_kb,iots_pred,cancel,norm_times_menu
 from aiogram.utils.chat_action import ChatActionSender
-from validators.validators import name_validate,phone_validate,act_validate,model_validate,id_validate,iot_validate,\
-    bycycle_type_validate,work_is_true
+from validators.validators import name_validate,phone_validate,act_validate,model_validate,id_validate,iot_validate, bycycle_type_validate
 from datetime import timedelta
 import pandas as pd
 from utils.info import info
@@ -19,11 +14,8 @@ from db_handler.db_class import get_my_time
 from create_bot import Form
 from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,save_message,get_pred_iot
 from aiogram.exceptions import TelegramBadRequest
-from pprint import pp
 from create_bot import bot
-import os
-from aiogram import Bot
-from datetime import datetime
+
 start_photo = FSInputFile('media/sticker.webm', filename='хуй')
 client_work_keys = ['work_type','full_name','phone_number','act_id','b_model','b_id','iot_id']
 client_work = ['','','Номер телефона: ','Акт №','Модель велосипеда: ','Номер велосипеда: ', 'IoT: ']
@@ -31,10 +23,8 @@ client_work = ['','','Номер телефона: ','Акт №','Модель 
 start  = Router()
 questionnaire_router = Router()
 works_router = Router()
-print(os.listdir()
-      )
 df = pd.read_excel('works_norm.xlsx',names = ['work','time','type','sale','group'])
-
+print('таблица открыта')
 async def init_work(state,message):
     print('инициализя')
     await state.update_data(works=[], user_id=message.from_user.id)
@@ -48,13 +38,6 @@ async def init_work(state,message):
     await message.answer(await info(state), reply_markup=works_edit_kb())
     await state.set_state(Form.next_menu)
 
-# @questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
-# async def start_questionnaire_process(message: Message, state: FSMContext):
-#     print('Отмена add_spare_')
-#     await state.set_state(Form.next_menu)
-#     await message.answer(await(info(state)), reply_markup=works_edit_kb())
-#
-
 
 @questionnaire_router.message(F.text == "❌ Отмена",Form.remont_edit)
 async def start_questionnaire_process(message: Message, state: FSMContext):
@@ -65,10 +48,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.set_state(Form.akb_menu)
     await message.answer(await(info(state)), reply_markup=works_edit_kb())
-# @questionnaire_router.message(F.text == "❌ Отмена",Form.getting_spare)
-# async def start_questionnaire_process(message: Message, state: FSMContext):
-#     print("Отмена getting_spare")
-#     await init_work(state,message)
+
 @questionnaire_router.message(F.text == "Отменить ремонт ❌",Form.next_menu)
 async def start_questionnaire_process(message: Message, state: FSMContext):
     await state.clear()
