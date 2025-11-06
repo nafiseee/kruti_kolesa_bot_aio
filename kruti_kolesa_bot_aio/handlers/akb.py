@@ -1,15 +1,13 @@
 from aiogram import Router, F
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from keyboards.all_kb import main_kb, b_models, works_edit_kb, works_groups, return_works_kb, m_or_e_kb,\
-    add_spares,spares_list_for_work,return_spares_group,return_spares,deleting_spares,akb_menu,akb_works,return_akb_works_kb,deleting_works
+from keyboards.all_kb import (works_edit_kb,add_spares,spares_list_for_work,return_spares_group,return_spares,deleting_spares,
+                              return_akb_works_kb,deleting_works)
 from aiogram.fsm.context import FSMContext
-import pandas as pd
 from utils.info import info
 from utils.dataframes import df,df_spares
 from create_bot import Form
 from validators.validators import act_validate,akb_id_validate,capacity_validate
-from aiogram.types import FSInputFile,ReplyKeyboardRemove,CallbackQuery
+from aiogram.types import ReplyKeyboardRemove
 from datetime import timedelta
 from db_handler.db_class import get_user_name
 async def init_akb_work(state,message):
@@ -135,6 +133,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     if '| 'in message.text and  message.text.split('| ')[1] in  data['spares']:
         print(int(message.text.split('| ')[0]))
         data['spares'].pop(int(message.text.split('| ')[0])-1)
+        await state.update_data(data = data)
         await message.answer(await info(state), reply_markup=works_edit_kb())
         await state.set_state(Form.akb_menu)
     else:

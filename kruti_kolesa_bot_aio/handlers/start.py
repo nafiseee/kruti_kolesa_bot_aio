@@ -3,7 +3,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import FSInputFile,ReplyKeyboardRemove,CallbackQuery
-from keyboards.all_kb import main_kb,b_models,works_edit_kb,works_groups,return_works_kb,m_or_e_kb,edit_work,akb_menu,akb_start_kb,iots_pred,cancel,norm_times_menu
+from keyboards.all_kb import main_kb,b_models,works_edit_kb,m_or_e_kb,edit_work,iots_pred,cancel,norm_times_menu
 from aiogram.utils.chat_action import ChatActionSender
 from validators.validators import name_validate,phone_validate,act_validate,model_validate,id_validate,iot_validate, bycycle_type_validate
 from datetime import timedelta
@@ -12,7 +12,7 @@ from utils.info import info
 from db_handler import db_class
 from db_handler.db_class import get_my_time
 from create_bot import Form
-from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,save_message,get_pred_iot
+from db_handler.db_class import check_sub,add_user,get_user_name,find_remont,get_pred_iot
 from aiogram.exceptions import TelegramBadRequest
 from create_bot import bot
 
@@ -329,7 +329,7 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
     print(f"======================={message.text}")
     print('измененеие ремонта [[[')
     await message.reply("Что делаем?:", reply_markup=edit_work())
-    if dict(await state.get_data())['m_or_e']:
+    if 'm_or_e' in dict(await state.get_data()):
         await state.set_state(Form.remont_edit)
     else:
         await state.set_state(Form.akb_remont_edit)

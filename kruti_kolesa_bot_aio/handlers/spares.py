@@ -1,10 +1,7 @@
 from aiogram import Router, F
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from keyboards.all_kb import main_kb, b_models, works_edit_kb, works_groups, return_works_kb, m_or_e_kb,\
-    add_spares,spares_list_for_work,return_spares_group,return_spares,deleting_spares
+from keyboards.all_kb import works_edit_kb,add_spares,spares_list_for_work,return_spares_group,return_spares,deleting_spares
 from aiogram.fsm.context import FSMContext
-import pandas as pd
 from utils.info import info
 from utils.dataframes import df,df_spares
 from create_bot import Form
@@ -50,17 +47,15 @@ async def start_questionnaire_process(message: Message, state: FSMContext):
 
     # Безопасное удаление по индексу
     if '|' in message.text:
-        try:
-            spare_number = int(message.text.split('|')[0].strip()) - 1
-            if 0 <= spare_number < len(spares_list):
-                removed_spare = spares_list.pop(spare_number)
-                await state.update_data(spares=spares_list)
-                await message.answer(f"Удалено: {removed_spare}")
-                await message.answer(await info(state), reply_markup=works_edit_kb())
-                await state.set_state(Form.next_menu)
-                return
-        except (ValueError, IndexError):
-            pass
+        spare_number = int(message.text.split('|')[0].strip()) - 1
+        print(spare_number)
+        removed_spare = spares_list.pop(spare_number-1)
+        await state.update_data(spares=spares_list)
+        print(spares_list)
+        await message.answer(f"Удалено: {removed_spare}")
+        await message.answer(await info(state), reply_markup=works_edit_kb())
+        await state.set_state(Form.next_menu)
+        return
 
     await message.answer('Нет такой запчасти')
     await state.set_state(Form.next_menu)

@@ -1,12 +1,9 @@
 from aiogram import Router, F
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message
-from keyboards.all_kb import main_kb,b_models,works_edit_kb,works_groups,return_works_kb,m_or_e_kb,add_spares,spares_list_for_work,to_delete_work,edit_work,deleting_works
+from keyboards.all_kb import works_edit_kb,works_groups,return_works_kb,spares_list_for_work,deleting_works
 from aiogram.fsm.context import FSMContext
-import pandas as pd
 from utils.info import info
 from utils.dataframes import df
-from .start import init_work
 from create_bot import Form
 
 works_router = Router()

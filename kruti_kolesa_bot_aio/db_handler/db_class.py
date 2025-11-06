@@ -1,9 +1,6 @@
-import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from create_bot import electro,mechanical,akb,users,messages
-from utils.info import info
 from pprint import pprint
-from pymongo import MongoClient, DESCENDING
 import pandas as pd
 from datetime import datetime
 async def test_connection():
@@ -44,7 +41,6 @@ async def delete_remont(data):
     if 'akb' in data:
         await akb.delete_one({ "_id": data['_id'] })
 
-    print('удалил ремонт ес чо')
 
 async def save_message(message):
     print("+"*100)
@@ -224,7 +220,7 @@ async def get_times_all(start_str=None,end_str=None):
 
 
 
-    return text+start_str+end_str
+    return text
 
 async def get_lost_spares():
     all_spares = []

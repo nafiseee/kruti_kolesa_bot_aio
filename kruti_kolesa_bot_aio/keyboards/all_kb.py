@@ -1,11 +1,6 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from create_bot import admins
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from electro_works import electro_works
-from mechanical_works import mechanical_works
-
-
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def main_kb(user_telegram_id: int):
     kb_list = [

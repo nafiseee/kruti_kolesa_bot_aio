@@ -1,6 +1,5 @@
 import re
-from electro_works import electro_works
-from mechanical_works import mechanical_works
+from utils.dataframes import df
 def name_validate(text):
     pattern = r'^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$'
     return bool(re.match(pattern, text))
@@ -22,9 +21,6 @@ def iot_validate(text):
 def bycycle_type_validate(text):
     return text in ['🔩 Механика','⚡ Электро']
 def work_is_true(text):
-    for i in electro_works.values():
-        if text in i:
-            return True
-    return False
+    return text in df['works']
 def akb_id_validate(text):
     return act_validate(text)

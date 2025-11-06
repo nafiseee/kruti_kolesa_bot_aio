@@ -82,6 +82,7 @@ admins = [int(admin_id) for admin_id in config('ADMINS').split(',')]
 #             return False
 
 async_client = AsyncIOMotorClient('mongodb://adminuser:adminpassword@mongodb:27017/')
+# async_client = AsyncIOMotorClient('mongodb://localhost:27017/')
 print('подключение к монго')
 async_db = async_client.telegram_bot
 electro = async_db.electro
@@ -94,13 +95,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 print(config('REDIS_USER'))
 print(os.getenv('REDIS_PASSWORD'))
-redis = Redis(
-    host='redis',  # имя контейнера Redis
-    port=6379,
-    socket_connect_timeout=10# ← Берем из окружения
-)
+# redis = Redis(
+#     host='redis',  # имя контейнера Redis
+#     port=6379,
+#     socket_connect_timeout=10# ← Берем из окружения
+# )
 
 bot = Bot(token=config('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=RedisStorage.from_url("redis://redis:6379/0"))
+# dp = Dispatcher(storage=RedisStorage.from_url("redis://127.0.0.1:6379/0"))
 print('подключение к редис')
-print(redis)
